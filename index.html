@@ -47,40 +47,40 @@
       --stat-text:     #E8DEC8;
     }
 
-    /* ── Tema Claro (verde e branco) ── */
+    /* ── Tema Claro (paleta do convite) ── */
     [data-theme="light"] {
-      --bg:            #F2FAF3;
-      --bg-card:       #FFFFFF;
+      --bg:            #F5F0E8;
+      --bg-card:       #FDFAF5;
       --bg-input:      #FFFFFF;
-      --bg-table:      #FFFFFF;
-      --bg-thead:      #E6F4E8;
-      --bg-th-hover:   #D4EBD7;
-      --bg-row-hover:  #F0FAF1;
-      --text:          #162818;
-      --text-label:    #3A6B42;
-      --text-muted:    #4A7A52;
-      --text-ph:       #8AB890;
-      --text-header:   #FFFFFF;
-      --text-hsub:     rgba(255,255,255,0.65);
-      --accent:        #2E7D32;
-      --accent-h:      #388E3C;
-      --accent-text:   #FFFFFF;
-      --border:        rgba(0,0,0,0.08);
-      --border-input:  rgba(46,125,50,0.25);
-      --border-modal:  rgba(46,125,50,0.2);
-      --header-bg:     linear-gradient(180deg,#1B5E20 0%,#2E7D32 60%,#F2FAF3 100%);
-      --header-border: rgba(46,125,50,0.2);
-      --divider-color: rgba(46,125,50,0.5);
-      --cd-num:        #2E7D32;
-      --cd-label:      rgba(255,255,255,0.65);
-      --cd-sep:        rgba(255,255,255,0.3);
-      --toggle-off:    #C8E6C9;
-      --modal-shadow:  0 24px 80px rgba(0,0,0,0.15);
-      --modal-text:    #162818;
-      --cancel-border: rgba(0,0,0,0.15);
-      --cancel-text:   #4A7A52;
-      --delete-text:   #444;
-      --stat-text:     #162818;
+      --bg-table:      #FDFAF5;
+      --bg-thead:      #EDE5D4;
+      --bg-th-hover:   #E0D4BE;
+      --bg-row-hover:  #F0E8D8;
+      --text:          #1A2C10;
+      --text-label:    #4A6B2A;
+      --text-muted:    #5A7A38;
+      --text-ph:       #9AB87A;
+      --text-header:   #F5ECD4;
+      --text-hsub:     rgba(245,236,212,0.7);
+      --accent:        #2D5016;
+      --accent-h:      #3A6820;
+      --accent-text:   #F5ECD4;
+      --border:        rgba(45,80,22,0.12);
+      --border-input:  rgba(45,80,22,0.2);
+      --border-modal:  rgba(196,168,76,0.35);
+      --header-bg:     linear-gradient(180deg,#1A3A0A 0%,#2D5016 55%,#3A6820 100%);
+      --header-border: rgba(196,168,76,0.3);
+      --divider-color: rgba(196,168,76,0.7);
+      --cd-num:        #C4A84C;
+      --cd-label:      rgba(245,236,212,0.7);
+      --cd-sep:        rgba(196,168,76,0.4);
+      --toggle-off:    #D4C9A8;
+      --modal-shadow:  0 24px 80px rgba(45,80,22,0.15);
+      --modal-text:    #1A2C10;
+      --cancel-border: rgba(45,80,22,0.2);
+      --cancel-text:   #5A7A38;
+      --delete-text:   #2C2010;
+      --stat-text:     #1A2C10;
     }
 
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -91,12 +91,12 @@
     .jj-header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
     .jj-header-inner{position:relative;z-index:1}
     .jj-header-ornament{font-size:14px;letter-spacing:8px;color:var(--accent);opacity:0.8;margin-bottom:12px}
-    [data-theme="light"] .jj-header-ornament{color:#A5D6A7}
+    [data-theme="light"] .jj-header-ornament{color:#C4A84C}
     .jj-header-title{font-size:clamp(36px,8vw,56px);font-weight:200;letter-spacing:clamp(6px,2vw,14px);color:var(--text-header);margin-bottom:4px;font-style:italic}
     .jj-header-divider{display:flex;align-items:center;gap:16px;justify-content:center;margin:12px 0}
     .jj-header-divider::before,.jj-header-divider::after{content:'';flex:1;max-width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--divider-color))}
     .jj-header-diamond{color:var(--accent);font-size:10px}
-    [data-theme="light"] .jj-header-diamond{color:#A5D6A7}
+    [data-theme="light"] .jj-header-diamond{color:#C4A84C}
     .jj-header-subtitle{font-size:10px;letter-spacing:3px;color:var(--text-hsub);text-transform:uppercase;margin-bottom:24px}
     .conn-badge{position:absolute;top:14px;right:14px;z-index:2;display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.25)}
     .conn-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
