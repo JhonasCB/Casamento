@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>J & J — Lista de Convidados</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
@@ -12,97 +13,108 @@
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0C0B09;color:#E8DEC8;min-height:100vh;font-size:14px}
-    .header{background:linear-gradient(180deg,#0A0806 0%,#140E06 60%,#0C0B09 100%);color:white;padding:48px 40px 36px;text-align:center;position:relative;overflow:hidden;border-bottom:1px solid rgba(201,168,76,0.15)}
-    .header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C9A84C' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
-    .header-inner{position:relative;z-index:1}
-    .header-ornament{font-size:16px;letter-spacing:8px;color:#C9A84C;opacity:0.7;margin-bottom:14px}
-    .header-title{font-size:56px;font-weight:200;letter-spacing:14px;color:#F5ECD4;margin-bottom:4px;font-style:italic}
-    .header-divider{display:flex;align-items:center;gap:16px;justify-content:center;margin:14px 0}
-    .header-divider::before,.header-divider::after{content:'';flex:1;max-width:100px;height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,0.6))}
-    .header-diamond{color:#C9A84C;font-size:10px}
-    .header-subtitle{font-size:11px;letter-spacing:4px;color:rgba(255,255,255,0.35);text-transform:uppercase;margin-bottom:32px}
-    .countdown{display:flex;justify-content:center;gap:24px;margin-top:4px}
-    .cd-block{text-align:center;min-width:64px}
-    .cd-num{font-size:36px;font-weight:700;color:#C9A84C;line-height:1;font-variant-numeric:tabular-nums}
-    .cd-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-top:4px}
-    .cd-sep{font-size:28px;color:rgba(201,168,76,0.3);line-height:1;padding-top:6px}
-    .conn-badge{position:absolute;top:18px;right:20px;z-index:2;display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:1px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.3)}
-    .conn-dot{width:7px;height:7px;border-radius:50%}
+
+    /* ── Header ── */
+    .jj-header{background:linear-gradient(180deg,#0A0806 0%,#140E06 60%,#0C0B09 100%);color:white;padding:40px 20px 28px;text-align:center;position:relative;overflow:hidden;border-bottom:1px solid rgba(201,168,76,0.15)}
+    .jj-header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C9A84C' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+    .jj-header-inner{position:relative;z-index:1}
+    .jj-header-ornament{font-size:14px;letter-spacing:8px;color:#C9A84C;opacity:0.7;margin-bottom:12px}
+    .jj-header-title{font-size:clamp(36px,8vw,56px);font-weight:200;letter-spacing:clamp(6px,2vw,14px);color:#F5ECD4;margin-bottom:4px;font-style:italic}
+    .jj-header-divider{display:flex;align-items:center;gap:16px;justify-content:center;margin:12px 0}
+    .jj-header-divider::before,.jj-header-divider::after{content:'';flex:1;max-width:80px;height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,0.6))}
+    .jj-header-diamond{color:#C9A84C;font-size:10px}
+    .jj-header-subtitle{font-size:10px;letter-spacing:3px;color:rgba(255,255,255,0.35);text-transform:uppercase;margin-bottom:24px}
+    .conn-badge{position:absolute;top:14px;right:14px;z-index:2;display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:1px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.3)}
+    .conn-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
     .conn-badge.online .conn-dot{background:#4ADE80;box-shadow:0 0 6px rgba(74,222,128,0.5)}
     .conn-badge.online{color:rgba(74,222,128,0.8)}
     .conn-badge.offline .conn-dot{background:#4B5563}
     .conn-badge.offline{color:rgba(255,255,255,0.25)}
-    .main{max-width:1280px;margin:0 auto;padding:32px 24px}
-    .stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:28px}
-    .stat-card{background:#161410;border-radius:12px;padding:18px 14px;text-align:center;border:1px solid rgba(255,255,255,0.07);cursor:pointer;transition:all .15s}
+
+    /* ── Countdown ── */
+    .countdown{display:flex;justify-content:center;gap:clamp(10px,3vw,24px)}
+    .cd-block{text-align:center;min-width:52px}
+    .cd-num{font-size:clamp(24px,5vw,36px);font-weight:700;color:#C9A84C;line-height:1;font-variant-numeric:tabular-nums}
+    .cd-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-top:4px}
+    .cd-sep{font-size:clamp(20px,4vw,28px);color:rgba(201,168,76,0.3);line-height:1;padding-top:4px}
+
+    /* ── Stat Cards ── */
+    .stat-card{background:#161410;border-radius:12px;padding:14px 10px;text-align:center;border:1px solid rgba(255,255,255,0.07);cursor:pointer;transition:all .15s;height:100%}
     .stat-card:hover{border-color:rgba(201,168,76,0.35);transform:translateY(-1px)}
     .stat-card.active-filter{border-color:#C9A84C;box-shadow:0 0 0 1px rgba(201,168,76,0.25)}
-    .stat-number{font-size:30px;font-weight:700;line-height:1;color:#E8DEC8}
-    .stat-label{font-size:10px;color:#6B5E45;text-transform:uppercase;letter-spacing:1.5px;margin-top:6px}
+    .stat-number{font-size:clamp(22px,5vw,30px);font-weight:700;line-height:1;color:#E8DEC8}
+    .stat-label{font-size:9px;color:#6B5E45;text-transform:uppercase;letter-spacing:1.5px;margin-top:6px}
     .stat-card.confirmed .stat-number{color:#4ADE80}
     .stat-card.pending .stat-number{color:#FBB040}
     .stat-card.children .stat-number{color:#818CF8}
     .stat-card.excluded .stat-number{color:#4B5563}
-    .controls-row{display:flex;gap:12px;margin-bottom:14px;align-items:center;flex-wrap:wrap}
-    .search-wrap{flex:1;min-width:220px;position:relative}
+
+    /* ── Controls ── */
+    .search-wrap{position:relative;flex:1;min-width:180px}
     .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#5B5040;font-size:16px;pointer-events:none}
     .search-input{width:100%;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px 10px 38px;font-size:14px;background:#161410;color:#E8DEC8;outline:none;transition:border-color .15s}
     .search-input::placeholder{color:#4B4030}
     .search-input:focus{border-color:#C9A84C;box-shadow:0 0 0 3px rgba(201,168,76,0.1)}
-    .add-btn{display:flex;align-items:center;gap:6px;padding:10px 20px;background:#C9A84C;color:#0C0B09;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;transition:background .15s;white-space:nowrap}
+    .add-btn{display:flex;align-items:center;gap:6px;padding:10px 18px;background:#C9A84C;color:#0C0B09;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;transition:background .15s;white-space:nowrap}
     .add-btn:hover{background:#E0BC5A}
-    .export-btn{padding:10px 16px;background:#161410;border:1px solid rgba(255,255,255,0.1);border-radius:8px;cursor:pointer;font-size:13px;color:#8B7A5A;transition:all .15s;white-space:nowrap}
+    .export-btn{padding:10px 14px;background:#161410;border:1px solid rgba(255,255,255,0.1);border-radius:8px;cursor:pointer;font-size:13px;color:#8B7A5A;transition:all .15s;white-space:nowrap}
     .export-btn:hover{border-color:#C9A84C;color:#C9A84C}
-    .group-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
-    .filter-chip{padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:#161410;cursor:pointer;font-size:12px;font-weight:500;color:#6B5E45;transition:all .15s}
+
+    /* ── Filters ── */
+    .filter-chip{padding:7px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:#161410;cursor:pointer;font-size:12px;font-weight:500;color:#6B5E45;transition:all .15s;white-space:nowrap}
     .filter-chip:hover{border-color:rgba(201,168,76,0.4);color:#C9A84C}
     .filter-chip.active{background:#C9A84C;color:#0C0B09;border-color:#C9A84C;font-weight:700}
-    .show-excluded-toggle{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:12px;color:#5B5040;cursor:pointer;user-select:none}
+    .show-excluded-toggle{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:12px;color:#5B5040;cursor:pointer;user-select:none;flex-shrink:0}
     .toggle-switch{width:36px;height:20px;background:#2A2418;border-radius:10px;position:relative;transition:background .2s;flex-shrink:0;border:1px solid rgba(255,255,255,0.08)}
     .toggle-switch.on{background:#C9A84C}
     .toggle-knob{position:absolute;top:2px;left:2px;width:14px;height:14px;background:white;border-radius:50%;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,0.5)}
     .toggle-switch.on .toggle-knob{left:18px}
+
+    /* ── Table ── */
     .table-wrap{background:#111009;border-radius:12px;border:1px solid rgba(255,255,255,0.07);overflow:hidden}
     table{width:100%;border-collapse:collapse}
-    thead th{background:#0D0C0A;padding:11px 14px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#5B5040;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.07);user-select:none;cursor:pointer;white-space:nowrap}
+    thead th{background:#0D0C0A;padding:11px 12px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#5B5040;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.07);user-select:none;cursor:pointer;white-space:nowrap}
     thead th:hover{background:#151210;color:#9B8B6E}
     thead th.sort-active{color:#C9A84C}
     tbody tr{transition:background .1s}
     tbody tr:hover td{background:#181510}
     tbody tr.is-excluded{opacity:0.3}
     tbody tr.is-excluded:hover{opacity:0.5}
-    tbody td{padding:11px 14px;border-top:1px solid rgba(255,255,255,0.05);vertical-align:middle}
+    tbody td{padding:10px 12px;border-top:1px solid rgba(255,255,255,0.05);vertical-align:middle}
     .guest-name{font-weight:500;color:#E8DEC8;font-size:14px}
     .guest-note{font-size:11px;color:#5B5040;font-style:italic;margin-top:2px}
     .group-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;letter-spacing:0.5px}
-    .status-pill{display:inline-block;padding:4px 11px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;transition:opacity .1s;user-select:none}
+    .status-pill{display:inline-block;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;transition:opacity .1s;user-select:none}
     .status-pill:hover{opacity:0.75}
     .s-invited{background:rgba(251,176,64,0.15);color:#FBB040;border:1px solid rgba(251,176,64,0.2)}
     .s-confirmed{background:rgba(74,222,128,0.12);color:#4ADE80;border:1px solid rgba(74,222,128,0.2)}
     .s-declined{background:rgba(248,113,113,0.12);color:#F87171;border:1px solid rgba(248,113,113,0.2)}
     .s-excluded{background:rgba(75,85,99,0.2);color:#4B5563;border:1px solid rgba(75,85,99,0.2)}
     .kid-chip{display:inline-block;padding:2px 8px;background:rgba(129,140,248,0.12);color:#818CF8;border-radius:10px;font-size:11px;margin:1px 2px;border:1px solid rgba(129,140,248,0.15)}
-    .action-btn{background:none;border:none;cursor:pointer;padding:5px 7px;border-radius:6px;font-size:15px;line-height:1;transition:background .1s;color:#5B5040}
+    .action-btn{background:none;border:none;cursor:pointer;padding:7px 9px;border-radius:6px;font-size:16px;line-height:1;transition:background .1s;color:#5B5040}
     .action-btn:hover{background:rgba(255,255,255,0.06);color:#C9A84C}
     .action-btn.del:hover{background:rgba(248,113,113,0.12);color:#F87171}
-    .results-bar{display:flex;justify-content:space-between;align-items:center;padding:12px 0 4px;font-size:12px;color:#5B5040}
+    .results-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 0 4px;font-size:12px;color:#5B5040;flex-wrap:wrap;gap:8px}
     .empty-state{padding:60px 20px;text-align:center;color:#5B5040}
     .empty-icon{font-size:40px;margin-bottom:12px}
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
-    .modal{background:#161410;border:1px solid rgba(201,168,76,0.2);border-radius:16px;padding:32px;width:90%;max-width:480px;box-shadow:0 24px 80px rgba(0,0,0,0.6);max-height:90vh;overflow-y:auto}
-    .modal-title{font-size:20px;font-weight:700;color:#F5ECD4;margin-bottom:24px}
-    .form-group{margin-bottom:16px}
-    .form-label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#6B5E45;margin-bottom:6px}
-    .form-input,.form-select{width:100%;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;font-size:14px;outline:none;background:#0D0C0A;font-family:inherit;color:#E8DEC8;transition:border-color .15s}
-    .form-input::placeholder{color:#3B3025}
-    .form-input:focus,.form-select:focus{border-color:#C9A84C;box-shadow:0 0 0 3px rgba(201,168,76,0.1)}
+
+    /* ── Modal ── */
+    .jj-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1050;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);padding:16px}
+    .jj-modal{background:#161410;border:1px solid rgba(201,168,76,0.2);border-radius:16px;padding:28px 24px;width:100%;max-width:480px;box-shadow:0 24px 80px rgba(0,0,0,0.6);max-height:90vh;overflow-y:auto}
+    .jj-modal-title{font-size:18px;font-weight:700;color:#F5ECD4;margin-bottom:20px}
+    .jj-form-group{margin-bottom:14px}
+    .jj-form-label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#6B5E45;margin-bottom:6px}
+    .jj-form-input,.jj-form-select{width:100%;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;font-size:14px;outline:none;background:#0D0C0A;font-family:inherit;color:#E8DEC8;transition:border-color .15s;-webkit-appearance:none;appearance:none}
+    .jj-form-input::placeholder{color:#3B3025}
+    .jj-form-input:focus,.jj-form-select:focus{border-color:#C9A84C;box-shadow:0 0 0 3px rgba(201,168,76,0.1)}
+    .jj-form-select option{background:#161410;color:#E8DEC8}
     .children-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
     .child-tag{display:flex;align-items:center;gap:4px;background:rgba(129,140,248,0.12);border-radius:20px;padding:4px 10px;font-size:12px;color:#818CF8;border:1px solid rgba(129,140,248,0.15)}
     .child-tag button{background:none;border:none;cursor:pointer;color:#818CF8;font-size:16px;line-height:1;padding:0}
     .child-input-row{display:flex;gap:8px}
-    .child-add-btn{padding:8px 14px;background:rgba(129,140,248,0.12);color:#818CF8;border:1px solid rgba(129,140,248,0.2);border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;white-space:nowrap}
+    .child-add-btn{padding:10px 14px;background:rgba(129,140,248,0.12);color:#818CF8;border:1px solid rgba(129,140,248,0.2);border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;white-space:nowrap}
     .child-add-btn:hover{background:rgba(129,140,248,0.2)}
-    .modal-actions{display:flex;gap:10px;margin-top:24px;justify-content:flex-end}
+    .jj-modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end;flex-wrap:wrap}
     .btn-cancel{padding:10px 20px;background:transparent;border:1px solid rgba(255,255,255,0.12);border-radius:8px;cursor:pointer;font-size:14px;color:#8B7A5A}
     .btn-cancel:hover{background:rgba(255,255,255,0.05)}
     .btn-save{padding:10px 24px;background:#C9A84C;color:#0C0B09;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700}
@@ -111,35 +123,26 @@
     .btn-delete:hover{background:#DC2626}
     .delete-confirm-text{font-size:15px;color:#C4BAA4;line-height:1.6;margin-bottom:8px}
     .delete-confirm-sub{font-size:13px;color:#5B5040}
-    /* Setup Screen */
-    .setup-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0C0B09;padding:24px}
-    .setup-box{background:#161410;border:1px solid rgba(201,168,76,0.25);border-radius:20px;padding:48px;max-width:620px;width:100%}
-    .setup-logo{font-size:42px;font-weight:200;letter-spacing:10px;color:#F5ECD4;font-style:italic;text-align:center;margin-bottom:6px}
-    .setup-tag{text-align:center;font-size:10px;letter-spacing:3px;color:#5B5040;text-transform:uppercase;margin-bottom:36px}
-    .setup-title{font-size:18px;font-weight:700;color:#C9A84C;margin-bottom:6px}
-    .setup-sub{font-size:13px;color:#6B5E45;margin-bottom:32px;line-height:1.6}
-    .setup-step{display:flex;gap:16px;margin-bottom:20px;align-items:flex-start}
-    .step-num{width:28px;height:28px;border-radius:50%;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:#C9A84C;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-    .step-body{}
-    .step-title{font-size:14px;font-weight:600;color:#E8DEC8;margin-bottom:3px}
-    .step-desc{font-size:12px;color:#6B5E45;line-height:1.6}
-    .step-link{color:#C9A84C;text-decoration:none}
-    .step-link:hover{text-decoration:underline}
-    .step-code{font-family:monospace;background:#0D0C0A;border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:10px 14px;font-size:12px;color:#9B8B6E;margin-top:8px;line-height:1.7;white-space:pre-wrap;word-break:break-all}
-    /* Loading */
+
+    /* ── Loading ── */
     .loading-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0C0B09;gap:16px}
     .loading-logo{font-size:40px;font-weight:200;letter-spacing:12px;color:#F5ECD4;font-style:italic}
     .loading-spinner{width:32px;height:32px;border:2px solid rgba(201,168,76,0.15);border-top-color:#C9A84C;border-radius:50%;animation:spin .8s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
     .loading-text{font-size:12px;letter-spacing:2px;color:#5B5040;text-transform:uppercase}
-    @media(max-width:900px){.stats-grid{grid-template-columns:repeat(3,1fr)};.countdown{gap:14px};.cd-num{font-size:28px}}
-    @media(max-width:640px){.stats-grid{grid-template-columns:repeat(2,1fr)};.header-title{font-size:38px;letter-spacing:8px};thead th:nth-child(5),tbody td:nth-child(5){display:none};.cd-sep{display:none};.countdown{gap:10px}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ── Mobile tweaks ── */
+    @media(max-width:576px){
+      .jj-modal{border-radius:12px;padding:20px 16px}
+      .add-btn span{display:none}
+      tbody td{padding:8px}
+    }
   </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useEffect, useMemo, useRef } = React;
+const { useState, useEffect, useRef } = React;
 
 // ── Firebase ───────────────────────────────────────────────────
 const FIREBASE_CONFIG = {
@@ -157,14 +160,14 @@ const GUESTS_REF = firebase.database().ref('convidados');
 
 // ── Constants ──────────────────────────────────────────────────
 const GROUPS = {
-  FJH:  { label: 'Família João H', color: '#60A5FA', bg: 'rgba(96,165,250,0.12)'  },
+  FJH:  { label: 'Família João H',  color: '#60A5FA', bg: 'rgba(96,165,250,0.12)'  },
   FJG:  { label: 'Família Julia G', color: '#F472B6', bg: 'rgba(244,114,182,0.12)' },
-  AJH:  { label: 'Amigos João H',  color: '#818CF8', bg: 'rgba(129,140,248,0.12)' },
-  AJG:  { label: 'Amigos Julia G', color: '#C084FC', bg: 'rgba(192,132,252,0.12)' },
-  ADJD: { label: 'JD Nordeste',    color: '#FBB040', bg: 'rgba(251,176,64,0.12)'  },
-  JDM:  { label: 'JD Maringá',     color: '#34D399', bg: 'rgba(52,211,153,0.12)'  },
-  ADJM: { label: 'JD Maringá',     color: '#34D399', bg: 'rgba(52,211,153,0.12)'  },
-  ADJN: { label: 'JD Norte',       color: '#2DD4BF', bg: 'rgba(45,212,191,0.12)'  },
+  AJH:  { label: 'Amigos João H',   color: '#818CF8', bg: 'rgba(129,140,248,0.12)' },
+  AJG:  { label: 'Amigos Julia G',  color: '#C084FC', bg: 'rgba(192,132,252,0.12)' },
+  ADJD: { label: 'JD Nordeste',     color: '#FBB040', bg: 'rgba(251,176,64,0.12)'  },
+  JDM:  { label: 'JD Maringá',      color: '#34D399', bg: 'rgba(52,211,153,0.12)'  },
+  ADJM: { label: 'JD Maringá',      color: '#34D399', bg: 'rgba(52,211,153,0.12)'  },
+  ADJN: { label: 'JD Norte',        color: '#2DD4BF', bg: 'rgba(45,212,191,0.12)'  },
 };
 const STATUS_CYCLE = ['invited','confirmed','declined','excluded'];
 const STATUS_META = {
@@ -346,7 +349,7 @@ const SEED = [
 ];
 
 function buildInitial() {
-  return SEED.map((s, i) => ({ id: i + 1, name: s.n, group: s.g, note: s.note, kids: s.kids, status: s.status || 'invited' }));
+  return SEED.map((s, i) => ({ id: i + 1, name: s.n, group: s.g, note: s.note, kids: s.kids || [], status: s.status || 'invited' }));
 }
 
 // ── Countdown ────────────────────────────────────────────────
@@ -381,21 +384,20 @@ function Countdown() {
   );
 }
 
-
 // ── GroupBadge ────────────────────────────────────────────────
 function GroupBadge({ group }) {
   const g = GROUPS[group] || { label: group, color: '#888', bg: 'rgba(136,136,136,0.12)' };
   return <span className="group-badge" style={{ color: g.color, background: g.bg }}>{group}</span>;
 }
 
-// ── StatusPill (click cycles) ─────────────────────────────────
+// ── StatusPill ────────────────────────────────────────────────
 function StatusPill({ status, onChange }) {
   const m = STATUS_META[status] || STATUS_META.invited;
   return (
     <span className={`status-pill ${m.cls}`} onClick={() => {
       const idx = STATUS_CYCLE.indexOf(status);
       onChange(STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length]);
-    }} title="Clique para mudar o status">
+    }} title="Toque para mudar">
       {m.label}
     </span>
   );
@@ -414,57 +416,66 @@ function GuestModal({ initial, onSave, onClose }) {
   const addKid = () => {
     const v = kidInput.trim();
     if (!v) return;
-    setForm(f => ({ ...f, kids: [...f.kids, v] }));
+    setForm(f => ({ ...f, kids: [...(f.kids || []), v] }));
     setKidInput('');
-    kidRef.current?.focus();
+    kidRef.current && kidRef.current.focus();
   };
-  const removeKid = i => setForm(f => ({ ...f, kids: f.kids.filter((_, x) => x !== i) }));
+  const removeKid = i => setForm(f => ({ ...f, kids: (f.kids || []).filter((_, x) => x !== i) }));
   const save = () => { if (form.name.trim()) onSave(form); };
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-title">{isNew ? '+ Novo Convidado' : 'Editar Convidado'}</div>
-        <div className="form-group">
-          <label className="form-label">Nome *</label>
-          <input className="form-input" value={form.name} onChange={e => set('name', e.target.value)}
+    <div className="jj-overlay" onClick={onClose}>
+      <div className="jj-modal" onClick={e => e.stopPropagation()}>
+        <div className="jj-modal-title">{isNew ? '+ Novo Convidado' : 'Editar Convidado'}</div>
+
+        <div className="jj-form-group">
+          <label className="jj-form-label">Nome *</label>
+          <input className="jj-form-input" value={form.name} onChange={e => set('name', e.target.value)}
             placeholder="Nome completo" autoFocus onKeyDown={e => e.key === 'Enter' && save()} />
         </div>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-          <div className="form-group">
-            <label className="form-label">Grupo</label>
-            <select className="form-select" value={form.group} onChange={e => set('group', e.target.value)}>
-              {Object.entries(GROUPS).map(([k, v]) => <option key={k} value={k}>{k} — {v.label}</option>)}
-            </select>
+
+        <div className="row g-2 mb-2">
+          <div className="col-12 col-sm-6">
+            <div className="jj-form-group mb-0">
+              <label className="jj-form-label">Grupo</label>
+              <select className="jj-form-select" value={form.group} onChange={e => set('group', e.target.value)}>
+                {Object.entries(GROUPS).map(([k, v]) => <option key={k} value={k}>{k} — {v.label}</option>)}
+              </select>
+            </div>
           </div>
-          <div className="form-group">
-            <label className="form-label">Status</label>
-            <select className="form-select" value={form.status} onChange={e => set('status', e.target.value)}>
-              {Object.entries(STATUS_META).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-            </select>
+          <div className="col-12 col-sm-6">
+            <div className="jj-form-group mb-0">
+              <label className="jj-form-label">Status</label>
+              <select className="jj-form-select" value={form.status} onChange={e => set('status', e.target.value)}>
+                {Object.entries(STATUS_META).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+              </select>
+            </div>
           </div>
         </div>
-        <div className="form-group">
-          <label className="form-label">Observação</label>
-          <input className="form-input" value={form.note} onChange={e => set('note', e.target.value)}
+
+        <div className="jj-form-group">
+          <label className="jj-form-label">Observação</label>
+          <input className="jj-form-input" value={form.note} onChange={e => set('note', e.target.value)}
             placeholder="ex: cônjuge do Fulano..." />
         </div>
-        <div className="form-group">
-          <label className="form-label">Crianças</label>
-          {form.kids.length > 0 && (
+
+        <div className="jj-form-group">
+          <label className="jj-form-label">Crianças</label>
+          {(form.kids || []).length > 0 && (
             <div className="children-tags">
-              {form.kids.map((k, i) => (
+              {(form.kids || []).map((k, i) => (
                 <div key={i} className="child-tag">{k} <button onClick={() => removeKid(i)}>×</button></div>
               ))}
             </div>
           )}
           <div className="child-input-row">
-            <input ref={kidRef} className="form-input" value={kidInput} onChange={e => setKidInput(e.target.value)}
+            <input ref={kidRef} className="jj-form-input" value={kidInput} onChange={e => setKidInput(e.target.value)}
               placeholder="Nome da criança" onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addKid())} />
             <button className="child-add-btn" onClick={addKid}>+ Add</button>
           </div>
         </div>
-        <div className="modal-actions">
+
+        <div className="jj-modal-actions">
           <button className="btn-cancel" onClick={onClose}>Cancelar</button>
           <button className="btn-save" onClick={save}>{isNew ? 'Adicionar' : 'Salvar'}</button>
         </div>
@@ -476,12 +487,12 @@ function GuestModal({ initial, onSave, onClose }) {
 // ── DeleteModal ───────────────────────────────────────────────
 function DeleteModal({ guest, onConfirm, onClose }) {
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-title">Remover convidado?</div>
+    <div className="jj-overlay" onClick={onClose}>
+      <div className="jj-modal" onClick={e => e.stopPropagation()}>
+        <div className="jj-modal-title">Remover convidado?</div>
         <p className="delete-confirm-text">Tem certeza que quer remover <strong>{guest.name}</strong>?</p>
-        <p className="delete-confirm-sub">Essa ação remove para os dois. Use "Restaurar" se mudar de ideia.</p>
-        <div className="modal-actions">
+        <p className="delete-confirm-sub">Essa ação remove para os dois.</p>
+        <div className="jj-modal-actions">
           <button className="btn-cancel" onClick={onClose}>Cancelar</button>
           <button className="btn-delete" onClick={onConfirm}>Sim, remover</button>
         </div>
@@ -524,15 +535,14 @@ function App() {
   }, []);
 
   if (!loaded) return (
-    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'#0C0B09',gap:16}}>
-      <div style={{fontSize:40,fontWeight:200,letterSpacing:12,color:'#F5ECD4',fontStyle:'italic'}}>J &amp; J</div>
-      <div style={{width:32,height:32,border:'2px solid rgba(201,168,76,0.15)',borderTopColor:'#C9A84C',borderRadius:'50%',animation:'spin .8s linear infinite'}}/>
-      <div style={{fontSize:12,letterSpacing:2,color:'#5B5040',textTransform:'uppercase'}}>conectando...</div>
+    <div className="loading-screen">
+      <div className="loading-logo">J &amp; J</div>
+      <div className="loading-spinner" />
+      <div className="loading-text">conectando...</div>
     </div>
   );
 
-  // ── Derived ─────────────────────────────────────────────────
-  const allGroups = [...new Set(SEED.map(s => s.g))];
+  const allGroups = Array.from(new Set(SEED.map(s => s.g)));
 
   const stats = {
     total:     guests.filter(g => g.status !== 'excluded').length,
@@ -563,11 +573,8 @@ function App() {
     return list;
   })();
 
-  // ── Handlers ────────────────────────────────────────────────
   const toggleSort = key => { if (sortKey === key) setSortDir(d => -d); else { setSortKey(key); setSortDir(1); } };
-
   const updateStatus = (id, status) => GUESTS_REF.child(String(id)).update({ status });
-
   const saveGuest = form => {
     if (modal.type === 'add') {
       const id = Date.now();
@@ -577,9 +584,7 @@ function App() {
     }
     setModal(null);
   };
-
   const deleteGuest = id => { GUESTS_REF.child(String(id)).remove(); setModal(null); };
-
   const resetData = () => {
     if (!window.confirm('Isso vai restaurar a lista original para os dois. Tem certeza?')) return;
     const initial = buildInitial();
@@ -587,7 +592,6 @@ function App() {
     initial.forEach(g => { obj[g.id] = g; });
     GUESTS_REF.set(obj);
   };
-
   const exportCSV = () => {
     const rows = [['ID','Nome','Grupo','Status','Observação','Crianças']];
     guests.forEach(g => rows.push([g.id, g.name, g.group, STATUS_META[g.status]?.label || g.status, g.note || '', (g.kids || []).join(' | ')]));
@@ -598,69 +602,81 @@ function App() {
     a.click();
   };
 
-  const arr = (sortDir === 1) ? ' ↑' : ' ↓';
+  const arr = sortDir === 1 ? ' ↑' : ' ↓';
 
   return (
     <>
       {/* HEADER */}
-      <header className="header">
+      <header className="jj-header">
         <div className={`conn-badge ${online ? 'online' : 'offline'}`}>
           <div className="conn-dot" />
           {online ? 'Ao vivo' : 'Offline'}
         </div>
-        <div className="header-inner">
-          <div className="header-ornament">✦ ✦ ✦</div>
-          <div className="header-title">J &amp; J</div>
-          <div className="header-divider"><span className="header-diamond">◆</span></div>
-          <div className="header-subtitle">20 de Novembro de 2027 — Lista de Convidados</div>
+        <div className="jj-header-inner">
+          <div className="jj-header-ornament">✦ ✦ ✦</div>
+          <div className="jj-header-title">J &amp; J</div>
+          <div className="jj-header-divider"><span className="jj-header-diamond">◆</span></div>
+          <div className="jj-header-subtitle">20 de Novembro de 2027 — Lista de Convidados</div>
           <Countdown />
         </div>
       </header>
 
-      <main className="main">
+      <div className="container-fluid px-3 px-md-4" style={{maxWidth:1280,margin:'0 auto',paddingTop:28,paddingBottom:40}}>
 
-        {/* STATS */}
-        <div className="stats-grid">
-          <div className={`stat-card total${statusFilter==='ALL'&&groupFilter==='ALL'?' active-filter':''}`}
-            onClick={() => { setStatusFilter('ALL'); setGroupFilter('ALL'); setShowExcluded(false); }}>
-            <div className="stat-number">{stats.total}</div>
-            <div className="stat-label">Adultos</div>
+        {/* STATS — 2 colunas no mobile, 3 no tablet, 5 no desktop */}
+        <div className="row row-cols-2 row-cols-md-3 row-cols-xl-5 g-2 mb-3">
+          <div className="col">
+            <div className={`stat-card total${statusFilter==='ALL'&&groupFilter==='ALL'?' active-filter':''}`}
+              onClick={() => { setStatusFilter('ALL'); setGroupFilter('ALL'); setShowExcluded(false); }}>
+              <div className="stat-number">{stats.total}</div>
+              <div className="stat-label">Adultos</div>
+            </div>
           </div>
-          <div className={`stat-card confirmed${statusFilter==='confirmed'?' active-filter':''}`}
-            onClick={() => setStatusFilter(s => s==='confirmed'?'ALL':'confirmed')}>
-            <div className="stat-number">{stats.confirmed}</div>
-            <div className="stat-label">Confirmados</div>
+          <div className="col">
+            <div className={`stat-card confirmed${statusFilter==='confirmed'?' active-filter':''}`}
+              onClick={() => setStatusFilter(s => s==='confirmed'?'ALL':'confirmed')}>
+              <div className="stat-number">{stats.confirmed}</div>
+              <div className="stat-label">Confirmados</div>
+            </div>
           </div>
-          <div className={`stat-card pending${statusFilter==='invited'?' active-filter':''}`}
-            onClick={() => setStatusFilter(s => s==='invited'?'ALL':'invited')}>
-            <div className="stat-number">{stats.pending}</div>
-            <div className="stat-label">Pendentes</div>
+          <div className="col">
+            <div className={`stat-card pending${statusFilter==='invited'?' active-filter':''}`}
+              onClick={() => setStatusFilter(s => s==='invited'?'ALL':'invited')}>
+              <div className="stat-number">{stats.pending}</div>
+              <div className="stat-label">Pendentes</div>
+            </div>
           </div>
-          <div className="stat-card children">
-            <div className="stat-number">{stats.kids}</div>
-            <div className="stat-label">Crianças</div>
+          <div className="col">
+            <div className="stat-card children">
+              <div className="stat-number">{stats.kids}</div>
+              <div className="stat-label">Crianças</div>
+            </div>
           </div>
-          <div className={`stat-card excluded${statusFilter==='excluded'?' active-filter':''}`}
-            onClick={() => { setStatusFilter(s => s==='excluded'?'ALL':'excluded'); setShowExcluded(true); }}>
-            <div className="stat-number">{stats.excluded}</div>
-            <div className="stat-label">Não convidar</div>
+          <div className="col">
+            <div className={`stat-card excluded${statusFilter==='excluded'?' active-filter':''}`}
+              onClick={() => { setStatusFilter(s => s==='excluded'?'ALL':'excluded'); setShowExcluded(true); }}>
+              <div className="stat-number">{stats.excluded}</div>
+              <div className="stat-label">Não convidar</div>
+            </div>
           </div>
         </div>
 
         {/* CONTROLS */}
-        <div className="controls-row">
+        <div className="d-flex flex-wrap gap-2 mb-2">
           <div className="search-wrap">
             <span className="search-icon">🔍</span>
-            <input className="search-input" placeholder="Buscar por nome, nota ou criança..."
+            <input className="search-input" placeholder="Buscar nome, nota ou criança..."
               value={search} onChange={e => setSearch(e.target.value)} />
           </div>
           <button className="export-btn" onClick={exportCSV}>⬇ CSV</button>
-          <button className="add-btn" onClick={() => setModal({ type:'add' })}>＋ Adicionar</button>
+          <button className="add-btn" onClick={() => setModal({ type:'add' })}>
+            ＋ <span>Adicionar</span>
+          </button>
         </div>
 
-        {/* GROUP FILTERS */}
-        <div className="group-row">
-          <span style={{fontSize:10,color:'#5B5040',textTransform:'uppercase',letterSpacing:1,marginRight:4}}>Grupo:</span>
+        {/* GRUPO FILTERS */}
+        <div className="d-flex flex-wrap gap-2 align-items-center mb-3">
+          <span style={{fontSize:10,color:'#5B5040',textTransform:'uppercase',letterSpacing:1}}>Grupo:</span>
           <button className={`filter-chip${groupFilter==='ALL'?' active':''}`} onClick={() => setGroupFilter('ALL')}>Todos</button>
           {allGroups.map(g => (
             <button key={g} className={`filter-chip${groupFilter===g?' active':''}`}
@@ -670,7 +686,7 @@ function App() {
           ))}
           <div className="show-excluded-toggle" onClick={() => setShowExcluded(v => !v)}>
             <div className={`toggle-switch${showExcluded?' on':''}`}><div className="toggle-knob"/></div>
-            Não convidar
+            <span className="d-none d-sm-inline">Não convidar</span>
           </div>
         </div>
 
@@ -682,50 +698,68 @@ function App() {
           </span>
           <button onClick={resetData}
             style={{background:'none',border:'none',cursor:'pointer',fontSize:11,color:'#C9A84C',textDecoration:'underline'}}>
-            ↺ Restaurar lista original
+            ↺ Restaurar lista
           </button>
         </div>
 
-        {/* TABLE */}
+        {/* TABLE — com scroll horizontal no mobile */}
         <div className="table-wrap">
           {filtered.length === 0 ? (
             <div className="empty-state"><div className="empty-icon">💌</div><div>Nenhum convidado encontrado.</div></div>
           ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th style={{width:40,textAlign:'center'}}>#</th>
-                  <th className={sortKey==='name'?'sort-active':''} onClick={() => toggleSort('name')}>Nome{sortKey==='name'?arr:''}</th>
-                  <th className={sortKey==='group'?'sort-active':''} onClick={() => toggleSort('group')} style={{width:90}}>Grupo{sortKey==='group'?arr:''}</th>
-                  <th style={{width:130}}>Status</th>
-                  <th>Crianças / Obs.</th>
-                  <th style={{width:80,textAlign:'center'}}>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((g, idx) => (
-                  <tr key={g.id} className={g.status==='excluded'?'is-excluded':''}>
-                    <td style={{textAlign:'center',color:'#C9A84C',fontSize:12,fontWeight:600}}>{idx+1}</td>
-                    <td>
-                      <div className="guest-name">{g.name}</div>
-                      {g.note && <div className="guest-note">{g.note}</div>}
-                    </td>
-                    <td><GroupBadge group={g.group}/></td>
-                    <td><StatusPill status={g.status} onChange={st => updateStatus(g.id, st)}/></td>
-                    <td>{(g.kids||[]).map((k,i) => <span key={i} className="kid-chip">👶 {k}</span>)}</td>
-                    <td style={{textAlign:'center',whiteSpace:'nowrap'}}>
-                      <button className="action-btn" title="Editar" onClick={() => setModal({type:'edit',guest:g})}>✏️</button>
-                      <button className="action-btn del" title="Remover" onClick={() => setModal({type:'delete',guest:g})}>🗑️</button>
-                    </td>
+            <div className="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th style={{width:36,textAlign:'center'}}>#</th>
+                    <th className={sortKey==='name'?'sort-active':''} onClick={() => toggleSort('name')}>
+                      Nome{sortKey==='name'?arr:''}
+                    </th>
+                    <th className={`d-none d-md-table-cell${sortKey==='group'?' sort-active':''}`}
+                      onClick={() => toggleSort('group')} style={{width:90}}>
+                      Grupo{sortKey==='group'?arr:''}
+                    </th>
+                    <th style={{width:120}}>Status</th>
+                    <th className="d-none d-lg-table-cell">Crianças / Obs.</th>
+                    <th style={{width:76,textAlign:'center'}}>Ações</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filtered.map((g, idx) => (
+                    <tr key={g.id} className={g.status==='excluded'?'is-excluded':''}>
+                      <td style={{textAlign:'center',color:'#C9A84C',fontSize:12,fontWeight:600}}>{idx+1}</td>
+                      <td>
+                        <div className="guest-name">{g.name}</div>
+                        {g.note && <div className="guest-note">{g.note}</div>}
+                        {/* no mobile, mostra grupo e kids embaixo do nome */}
+                        <div className="d-md-none mt-1">
+                          <GroupBadge group={g.group}/>
+                        </div>
+                        {(g.kids||[]).length > 0 && (
+                          <div className="d-lg-none mt-1">
+                            {(g.kids||[]).map((k,i) => <span key={i} className="kid-chip">👶 {k}</span>)}
+                          </div>
+                        )}
+                      </td>
+                      <td className="d-none d-md-table-cell"><GroupBadge group={g.group}/></td>
+                      <td><StatusPill status={g.status} onChange={st => updateStatus(g.id, st)}/></td>
+                      <td className="d-none d-lg-table-cell">
+                        {(g.kids||[]).map((k,i) => <span key={i} className="kid-chip">👶 {k}</span>)}
+                      </td>
+                      <td style={{textAlign:'center',whiteSpace:'nowrap'}}>
+                        <button className="action-btn" title="Editar" onClick={() => setModal({type:'edit',guest:g})}>✏️</button>
+                        <button className="action-btn del" title="Remover" onClick={() => setModal({type:'delete',guest:g})}>🗑️</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 
         {/* LEGEND */}
-        <div style={{marginTop:20,display:'flex',flexWrap:'wrap',gap:8}}>
+        <div className="d-flex flex-wrap gap-2 mt-3">
           {Object.entries(GROUPS).map(([k,v]) => (
             <span key={k} className="group-badge" style={{color:v.color,background:v.bg,padding:'4px 10px'}}>
               <strong>{k}</strong> — {v.label}
@@ -733,7 +767,7 @@ function App() {
           ))}
         </div>
 
-      </main>
+      </div>
 
       {modal?.type==='add'    && <GuestModal onSave={saveGuest} onClose={() => setModal(null)} />}
       {modal?.type==='edit'   && <GuestModal initial={modal.guest} onSave={saveGuest} onClose={() => setModal(null)} />}
