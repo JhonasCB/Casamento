@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>J & J — Lista de Convidados</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0C0B09;color:#E8DEC8;min-height:100vh;font-size:14px}
+    .header{background:linear-gradient(180deg,#0A0806 0%,#140E06 60%,#0C0B09 100%);color:white;padding:48px 40px 36px;text-align:center;position:relative;overflow:hidden;border-bottom:1px solid rgba(201,168,76,0.15)}
+    .header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C9A84C' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+    .header-inner{position:relative;z-index:1}
+    .header-ornament{font-size:16px;letter-spacing:8px;color:#C9A84C;opacity:0.7;margin-bottom:14px}
+    .header-title{font-size:56px;font-weight:200;letter-spacing:14px;color:#F5ECD4;margin-bottom:4px;font-style:italic}
+    .header-divider{display:flex;align-items:center;gap:16px;justify-content:center;margin:14px 0}
+    .header-divider::before,.header-divider::after{content:'';flex:1;max-width:100px;height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,0.6))}
+    .header-diamond{color:#C9A84C;font-size:10px}
+    .header-subtitle{font-size:11px;letter-spacing:4px;color:rgba(255,255,255,0.35);text-transform:uppercase;margin-bottom:32px}
+    .countdown{display:flex;justify-content:center;gap:24px;margin-top:4px}
+    .cd-block{text-align:center;min-width:64px}
+    .cd-num{font-size:36px;font-weight:700;color:#C9A84C;line-height:1;font-variant-numeric:tabular-nums}
+    .cd-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-top:4px}
+    .cd-sep{font-size:28px;color:rgba(201,168,76,0.3);line-height:1;padding-top:6px}
+    .conn-badge{position:absolute;top:18px;right:20px;z-index:2;display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:1px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.3)}
+    .conn-dot{width:7px;height:7px;border-radius:50%}
+    .conn-badge.online .conn-dot{background:#4ADE80;box-shadow:0 0 6px rgba(74,222,128,0.5)}
+    .conn-badge.online{color:rgba(74,222,128,0.8)}
+    .conn-badge.offline .conn-dot{background:#4B5563}
+    .conn-badge.offline{color:rgba(255,255,255,0.25)}
+    .main{max-width:1280px;margin:0 auto;padding:32px 24px}
+    .stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:28px}
+    .stat-card{background:#161410;border-radius:12px;padding:18px 14px;text-align:center;border:1px solid rgba(255,255,255,0.07);cursor:pointer;transition:all .15s}
+    .stat-card:hover{border-color:rgba(201,168,76,0.35);transform:translateY(-1px)}
+    .stat-card.active-filter{border-color:#C9A84C;box-shadow:0 0 0 1px rgba(201,168,76,0.25)}
+    .stat-number{font-size:30px;font-weight:700;line-height:1;color:#E8DEC8}
+    .stat-label{font-size:10px;color:#6B5E45;text-transform:uppercase;letter-spacing:1.5px;margin-top:6px}
+    .stat-card.confirmed .stat-number{color:#4ADE80}
+    .stat-card.pending .stat-number{color:#FBB040}
+    .stat-card.children .stat-number{color:#818CF8}
+    .stat-card.excluded .stat-number{color:#4B5563}
+    .controls-row{display:flex;gap:12px;margin-bottom:14px;align-items:center;flex-wrap:wrap}
+    .search-wrap{flex:1;min-width:220px;position:relative}
+    .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#5B5040;font-size:16px;pointer-events:none}
+    .search-input{width:100%;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px 10px 38px;font-size:14px;background:#161410;color:#E8DEC8;outline:none;transition:border-color .15s}
+    .search-input::placeholder{color:#4B4030}
+    .search-input:focus{border-color:#C9A84C;box-shadow:0 0 0 3px rgba(201,168,76,0.1)}
+    .add-btn{display:flex;align-items:center;gap:6px;padding:10px 20px;background:#C9A84C;color:#0C0B09;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;transition:background .15s;white-space:nowrap}
+    .add-btn:hover{background:#E0BC5A}
+    .export-btn{padding:10px 16px;background:#161410;border:1px solid rgba(255,255,255,0.1);border-radius:8px;cursor:pointer;font-size:13px;color:#8B7A5A;transition:all .15s;white-space:nowrap}
+    .export-btn:hover{border-color:#C9A84C;color:#C9A84C}
+    .group-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+    .filter-chip{padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:#161410;cursor:pointer;font-size:12px;font-weight:500;color:#6B5E45;transition:all .15s}
+    .filter-chip:hover{border-color:rgba(201,168,76,0.4);color:#C9A84C}
+    .filter-chip.active{background:#C9A84C;color:#0C0B09;border-color:#C9A84C;font-weight:700}
+    .show-excluded-toggle{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:12px;color:#5B5040;cursor:pointer;user-select:none}
+    .toggle-switch{width:36px;height:20px;background:#2A2418;border-radius:10px;position:relative;transition:background .2s;flex-shrink:0;border:1px solid rgba(255,255,255,0.08)}
+    .toggle-switch.on{background:#C9A84C}
+    .toggle-knob{position:absolute;top:2px;left:2px;width:14px;height:14px;background:white;border-radius:50%;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,0.5)}
+    .toggle-switch.on .toggle-knob{left:18px}
+    .table-wrap{background:#111009;border-radius:12px;border:1px solid rgba(255,255,255,0.07);overflow:hidden}
+    table{width:100%;border-collapse:collapse}
+    thead th{background:#0D0C0A;padding:11px 14px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#5B5040;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.07);user-select:none;cursor:pointer;white-space:nowrap}
+    thead th:hover{background:#151210;color:#9B8B6E}
+    thead th.sort-active{color:#C9A84C}
+    tbody tr{transition:background .1s}
+    tbody tr:hover td{background:#181510}
+    tbody tr.is-excluded{opacity:0.3}
+    tbody tr.is-excluded:hover{opacity:0.5}
+    tbody td{padding:11px 14px;border-top:1px solid rgba(255,255,255,0.05);vertical-align:middle}
+    .guest-name{font-weight:500;color:#E8DEC8;font-size:14px}
+    .guest-note{font-size:11px;color:#5B5040;font-style:italic;margin-top:2px}
+    .group-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;letter-spacing:0.5px}
+    .status-pill{display:inline-block;padding:4px 11px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;transition:opacity .1s;user-select:none}
+    .status-pill:hover{opacity:0.75}
+    .s-invited{background:rgba(251,176,64,0.15);color:#FBB040;border:1px solid rgba(251,176,64,0.2)}
+    .s-confirmed{background:rgba(74,222,128,0.12);color:#4ADE80;border:1px solid rgba(74,222,128,0.2)}
+    .s-declined{background:rgba(248,113,113,0.12);color:#F87171;border:1px solid rgba(248,113,113,0.2)}
+    .s-excluded{background:rgba(75,85,99,0.2);color:#4B5563;border:1px solid rgba(75,85,99,0.2)}
+    .kid-chip{display:inline-block;padding:2px 8px;background:rgba(129,140,248,0.12);color:#818CF8;border-radius:10px;font-size:11px;margin:1px 2px;border:1px solid rgba(129,140,248,0.15)}
+    .action-btn{background:none;border:none;cursor:pointer;padding:5px 7px;border-radius:6px;font-size:15px;line-height:1;transition:background .1s;color:#5B5040}
+    .action-btn:hover{background:rgba(255,255,255,0.06);color:#C9A84C}
+    .action-btn.del:hover{background:rgba(248,113,113,0.12);color:#F87171}
+    .results-bar{display:flex;justify-content:space-between;align-items:center;padding:12px 0 4px;font-size:12px;color:#5B5040}
+    .empty-state{padding:60px 20px;text-align:center;color:#5B5040}
+    .empty-icon{font-size:40px;margin-bottom:12px}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+    .modal{background:#161410;border:1px solid rgba(201,168,76,0.2);border-radius:16px;padding:32px;width:90%;max-width:480px;box-shadow:0 24px 80px rgba(0,0,0,0.6);max-height:90vh;overflow-y:auto}
+    .modal-title{font-size:20px;font-weight:700;color:#F5ECD4;margin-bottom:24px}
+    .form-group{margin-bottom:16px}
+    .form-label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#6B5E45;margin-bottom:6px}
+    .form-input,.form-select{width:100%;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;font-size:14px;outline:none;background:#0D0C0A;font-family:inherit;color:#E8DEC8;transition:border-color .15s}
+    .form-input::placeholder{color:#3B3025}
+    .form-input:focus,.form-select:focus{border-color:#C9A84C;box-shadow:0 0 0 3px rgba(201,168,76,0.1)}
+    .children-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+    .child-tag{display:flex;align-items:center;gap:4px;background:rgba(129,140,248,0.12);border-radius:20px;padding:4px 10px;font-size:12px;color:#818CF8;border:1px solid rgba(129,140,248,0.15)}
+    .child-tag button{background:none;border:none;cursor:pointer;color:#818CF8;font-size:16px;line-height:1;padding:0}
+    .child-input-row{display:flex;gap:8px}
+    .child-add-btn{padding:8px 14px;background:rgba(129,140,248,0.12);color:#818CF8;border:1px solid rgba(129,140,248,0.2);border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;white-space:nowrap}
+    .child-add-btn:hover{background:rgba(129,140,248,0.2)}
+    .modal-actions{display:flex;gap:10px;margin-top:24px;justify-content:flex-end}
+    .btn-cancel{padding:10px 20px;background:transparent;border:1px solid rgba(255,255,255,0.12);border-radius:8px;cursor:pointer;font-size:14px;color:#8B7A5A}
+    .btn-cancel:hover{background:rgba(255,255,255,0.05)}
+    .btn-save{padding:10px 24px;background:#C9A84C;color:#0C0B09;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700}
+    .btn-save:hover{background:#E0BC5A}
+    .btn-delete{padding:10px 24px;background:rgba(220,38,38,0.8);color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600}
+    .btn-delete:hover{background:#DC2626}
+    .delete-confirm-text{font-size:15px;color:#C4BAA4;line-height:1.6;margin-bottom:8px}
+    .delete-confirm-sub{font-size:13px;color:#5B5040}
+    /* Setup Screen */
+    .setup-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0C0B09;padding:24px}
+    .setup-box{background:#161410;border:1px solid rgba(201,168,76,0.25);border-radius:20px;padding:48px;max-width:620px;width:100%}
+    .setup-logo{font-size:42px;font-weight:200;letter-spacing:10px;color:#F5ECD4;font-style:italic;text-align:center;margin-bottom:6px}
+    .setup-tag{text-align:center;font-size:10px;letter-spacing:3px;color:#5B5040;text-transform:uppercase;margin-bottom:36px}
+    .setup-title{font-size:18px;font-weight:700;color:#C9A84C;margin-bottom:6px}
+    .setup-sub{font-size:13px;color:#6B5E45;margin-bottom:32px;line-height:1.6}
+    .setup-step{display:flex;gap:16px;margin-bottom:20px;align-items:flex-start}
+    .step-num{width:28px;height:28px;border-radius:50%;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:#C9A84C;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+    .step-body{}
+    .step-title{font-size:14px;font-weight:600;color:#E8DEC8;margin-bottom:3px}
+    .step-desc{font-size:12px;color:#6B5E45;line-height:1.6}
+    .step-link{color:#C9A84C;text-decoration:none}
+    .step-link:hover{text-decoration:underline}
+    .step-code{font-family:monospace;background:#0D0C0A;border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:10px 14px;font-size:12px;color:#9B8B6E;margin-top:8px;line-height:1.7;white-space:pre-wrap;word-break:break-all}
+    /* Loading */
+    .loading-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0C0B09;gap:16px}
+    .loading-logo{font-size:40px;font-weight:200;letter-spacing:12px;color:#F5ECD4;font-style:italic}
+    .loading-spinner{width:32px;height:32px;border:2px solid rgba(201,168,76,0.15);border-top-color:#C9A84C;border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading-text{font-size:12px;letter-spacing:2px;color:#5B5040;text-transform:uppercase}
+    @media(max-width:900px){.stats-grid{grid-template-columns:repeat(3,1fr)};.countdown{gap:14px};.cd-num{font-size:28px}}
+    @media(max-width:640px){.stats-grid{grid-template-columns:repeat(2,1fr)};.header-title{font-size:38px;letter-spacing:8px};thead th:nth-child(5),tbody td:nth-child(5){display:none};.cd-sep{display:none};.countdown{gap:10px}}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useMemo, useRef } = React;
+
+// ── Persistência localStorage ──────────────────────────────────
+const STORAGE_KEY = 'casamento-jj-guests';
+const loadGuests = () => {
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data) : null;
+  } catch { return null; }
+};
+const persistGuests = (list) => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+};
+
+// ── Constants ──────────────────────────────────────────────────
+const GROUPS = {
+  FJH:  { label: 'Família João H', color: '#60A5FA', bg: 'rgba(96,165,250,0.12)'  },
+  FJG:  { label: 'Família Julia G', color: '#F472B6', bg: 'rgba(244,114,182,0.12)' },
+  AJH:  { label: 'Amigos João H',  color: '#818CF8', bg: 'rgba(129,140,248,0.12)' },
+  AJG:  { label: 'Amigos Julia G', color: '#C084FC', bg: 'rgba(192,132,252,0.12)' },
+  ADJD: { label: 'JD Nordeste',    color: '#FBB040', bg: 'rgba(251,176,64,0.12)'  },
+  JDM:  { label: 'JD Maringá',     color: '#34D399', bg: 'rgba(52,211,153,0.12)'  },
+  ADJM: { label: 'JD Maringá',     color: '#34D399', bg: 'rgba(52,211,153,0.12)'  },
+  ADJN: { label: 'JD Norte',       color: '#2DD4BF', bg: 'rgba(45,212,191,0.12)'  },
+};
+const STATUS_CYCLE = ['invited','confirmed','declined','excluded'];
+const STATUS_META = {
+  invited:   { label: 'Pendente',     cls: 's-invited'   },
+  confirmed: { label: 'Confirmado',   cls: 's-confirmed'  },
+  declined:  { label: 'Recusou',      cls: 's-declined'   },
+  excluded:  { label: 'Não convidar', cls: 's-excluded'   },
+};
+const SEED = [
+  {n:'Abner Souza',g:'JDM',note:'',kids:[]},
+  {n:'Adriana Lopes',g:'ADJD',note:'',kids:[]},
+  {n:'Adriano Acaitano',g:'FJG',note:'',kids:[]},
+  {n:'Aleandres Teodoro',g:'FJG',note:'',kids:[]},
+  {n:'Alexandre Romão',g:'FJG',note:'',kids:[]},
+  {n:'Alexandre Shell',g:'FJH',note:'',kids:[]},
+  {n:'Alexsandra Romão',g:'FJG',note:'',kids:[]},
+  {n:'Alexsandra Santos',g:'ADJD',note:'',kids:[]},
+  {n:'Aline Souza',g:'JDM',note:'',kids:['Nicolas Souza']},
+  {n:'Amália Inácio',g:'ADJD',note:'',kids:[]},
+  {n:'Amélia Mór',g:'FJH',note:'',kids:[]},
+  {n:'Ana Carol Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Ana Cristina',g:'JDM',note:'',kids:[]},
+  {n:'Ana Gonçalves',g:'FJH',note:'mãe da Julia',kids:[]},
+  {n:'Ana Luiza',g:'FJH',note:'',kids:[]},
+  {n:'Ana Mór',g:'FJH',note:'',kids:[]},
+  {n:'Ana Vitoria Inácio',g:'ADJD',note:'',kids:[]},
+  {n:'André Lopes',g:'ADJD',note:'',kids:[]},
+  {n:'André Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Andrea Romão',g:'FJG',note:'',kids:[]},
+  {n:'Angelina Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Antônio Zalunche',g:'FJG',note:'',kids:[]},
+  {n:'Audelice Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Augusto Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Aurecy Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Barbara Romão',g:'FJG',note:'',kids:[]},
+  {n:'Beatriz Andrade',g:'FJG',note:'',kids:[]},
+  {n:'Beatriz Romão',g:'FJG',note:'',kids:[]},
+  {n:'Bianca Fagioli',g:'FJG',note:'mulher do Maycon',kids:[]},
+  {n:'Bruna Cristine Lopes',g:'ADJD',note:'',kids:[]},
+  {n:'Bruna Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Bruna Marinho',g:'FJG',note:'esposa do André',kids:[]},
+  {n:'Bruno Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Bruno Romão',g:'FJG',note:'',kids:[]},
+  {n:'Caio Lopes',g:'ADJD',note:'filho do Will',kids:[]},
+  {n:'Camila Guimarães',g:'FJG',note:'Leandro',kids:[]},
+  {n:'Camila Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Carla Candido',g:'ADJD',note:'',kids:[]},
+  {n:'Carol Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Carol Moraga',g:'ADJD',note:'',kids:[]},
+  {n:'Carol Quirino',g:'FJH',note:'',kids:[]},
+  {n:'Cesar Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'César Macedo',g:'FJG',note:'',kids:[]},
+  {n:'Claudete Sales',g:'AJH',note:'Pitoco',kids:[]},
+  {n:'Cleide Vataru',g:'ADJD',note:'',kids:[]},
+  {n:'Daiane Dutra',g:'ADJD',note:'',kids:[]},
+  {n:'Dani Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Daniel Mór',g:'FJH',note:'',kids:['Miguel (9 anos)']},
+  {n:'Débora Frenhan',g:'ADJD',note:'',kids:[]},
+  {n:'Dede',g:'FJH',note:'mulher do Daniel',kids:['Henrico (3 anos)']},
+  {n:'Deva Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Douglas Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Edivaldo Sales',g:'AJH',note:'Pitoco',kids:[]},
+  {n:'Eduardo Pimentel',g:'AJH',note:'',kids:[]},
+  {n:'Eduardo Romão',g:'FJG',note:'',kids:[]},
+  {n:'Elayne Lopes',g:'ADJD',note:'',kids:[]},
+  {n:'Erika Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Estefany Romão',g:'FJG',note:'',kids:[]},
+  {n:'Ester Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Fabiana Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Fábio Pereira',g:'JDM',note:'',kids:[]},
+  {n:'Fernando',g:'FJH',note:'marido da Ana Luiza',kids:[]},
+  {n:'Fia Nascimento',g:'FJH',note:'',kids:[]},
+  {n:'Gabriel Azevedo',g:'AJH',note:'',kids:[]},
+  {n:'Gabriel Candido',g:'ADJD',note:'filho do Ildo',kids:[]},
+  {n:'Gabriel Lopes',g:'ADJD',note:'filho do Will',kids:[]},
+  {n:'Gabriela Lopes',g:'ADJD',note:'',kids:[]},
+  {n:'Gabriela Marinho Cavalcante',g:'FJG',note:'',kids:[]},
+  {n:'Giovane Salles',g:'AJH',note:'Pitoco',kids:[]},
+  {n:'Giovanna Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Gisele Tavares',g:'AJG',note:'',kids:[]},
+  {n:'Guilherme',g:'AJG',note:'namorado da Gisele',kids:[]},
+  {n:'Guilherme Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Guilherme Romão',g:'FJG',note:'',kids:[]},
+  {n:'Gustavo Zalunche',g:'FJG',note:'',kids:[]},
+  {n:'Heloísa Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Idael Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Idenor Guimarães Júnior',g:'FJG',note:'',kids:[]},
+  {n:'Ildo Candido',g:'ADJD',note:'',kids:[]},
+  {n:'Inês Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Íris Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Isabela Eutran',g:'ADJD',note:'',kids:[]},
+  {n:'Isabela Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Jaqueline Teodoro',g:'FJG',note:'',kids:[]},
+  {n:'Jennifer Vieira',g:'AJH',note:'Duds',kids:[]},
+  {n:'João Inácio',g:'ADJD',note:'',kids:[]},
+  {n:'João Marcos Brito',g:'ADJD',note:'',kids:[]},
+  {n:'João Pedro',g:'FJH',note:'Ana Luiza',kids:[]},
+  {n:'João Vitor',g:'AJH',note:'Aphro',kids:[]},
+  {n:'Jonas Lopes',g:'ADJD',note:'',kids:[]},
+  {n:'Josue Alves',g:'ADJD',note:'Nicolle',kids:[]},
+  {n:'Josué Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Joyce Venancio',g:'FJG',note:'Natalia',kids:[]},
+  {n:'Júlia Nascimento',g:'FJH',note:'',kids:[]},
+  {n:'Juliana Acaitano',g:'FJG',note:'',kids:[]},
+  {n:'Juliana Macedo',g:'FJG',note:'',kids:['Heitor (4 anos)']},
+  {n:'Júlio Mór',g:'FJH',note:'',kids:[]},
+  {n:'Kaio Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Kleber Guimarães',g:'FJG',note:'',kids:['Nathan (7 anos)','Susana (5 anos)']},
+  {n:'Larissa Costa',g:'AJG',note:'',kids:[]},
+  {n:'Larissa Teodoro',g:'FJG',note:'Ale Teodoro',kids:[]},
+  {n:'Leandro Dutra',g:'ADJD',note:'',kids:['Isabela (4 anos)']},
+  {n:'Leandro Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Leonardo Santos',g:'ADJD',note:'filho do pastor',kids:[]},
+  {n:'Leônidas Cavalcante',g:'FJG',note:'',kids:[]},
+  {n:'Leticia Miranda',g:'FJG',note:'',kids:[]},
+  {n:'Livia Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Luana Miranda Teodoro',g:'FJG',note:'esposa do Ricardo',kids:[]},
+  {n:'Luana Zalunche',g:'FJG',note:'',kids:['Murilo Romão (7 anos)']},
+  {n:'Lucas Romão',g:'FJG',note:'',kids:[]},
+  {n:'Lucas Soares',g:'AJH',note:'Luquinhas',kids:[]},
+  {n:'Lucelena Souza',g:'FJH',note:'',kids:[]},
+  {n:'Luiza Romão',g:'FJG',note:'',kids:[]},
+  {n:'Manuela Gonçalves',g:'FJH',note:'',kids:[]},
+  {n:'Manuela Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Marcelo Souza',g:'FJH',note:'',kids:[]},
+  {n:'Marcelo Teodoro',g:'FJG',note:'',kids:[]},
+  {n:'Marcos Romão',g:'FJG',note:'',kids:[]},
+  {n:'Maria da Paz Lopes',g:'ADJD',note:'',kids:[]},
+  {n:'Maria Eduarda Brito',g:'ADJD',note:'',kids:[]},
+  {n:'Maria Onilia',g:'FJG',note:'não convidar',kids:[],status:'excluded'},
+  {n:'Mariana Acaitano',g:'FJG',note:'',kids:[]},
+  {n:'Marlene Romão',g:'FJG',note:'',kids:[]},
+  {n:'Mateus Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Matheus Tomazi',g:'AJH',note:'',kids:[]},
+  {n:'Matheus William',g:'AJH',note:'Mac',kids:[]},
+  {n:'Maycon Romão',g:'FJG',note:'',kids:[]},
+  {n:'Michele Inácio',g:'ADJN',note:'',kids:[]},
+  {n:'Michele Romão',g:'FJG',note:'Rafael',kids:[]},
+  {n:'Michele Teodoro',g:'FJG',note:'',kids:[]},
+  {n:'Natália Acaitano',g:'FJG',note:'',kids:[]},
+  {n:'Natalia Araújo',g:'ADJD',note:'',kids:[]},
+  {n:'Natyelly Romão',g:'FJG',note:'',kids:[]},
+  {n:'Nicolas Lopes',g:'ADJD',note:'',kids:[]},
+  {n:'Nicole Alves',g:'ADJD',note:'',kids:[]},
+  {n:'Odair Nascimento',g:'FJH',note:'',kids:[]},
+  {n:'Olinda Romão',g:'FJG',note:'',kids:[]},
+  {n:'Óseias Lopes',g:'ADJD',note:'',kids:[]},
+  {n:'Osias Romão',g:'FJG',note:'não convidar',kids:[],status:'excluded'},
+  {n:'Pedro Eutran',g:'ADJD',note:'',kids:[]},
+  {n:'Pedro Nascimento',g:'FJH',note:'',kids:[]},
+  {n:'Rafael Romão',g:'FJG',note:'',kids:[]},
+  {n:'Rafael Serafim',g:'ADJD',note:'',kids:[]},
+  {n:'Raissa Lopes',g:'ADJD',note:'',kids:[]},
+  {n:'Raquel Lucio',g:'ADJD',note:'',kids:[]},
+  {n:'Renata Gonçalves',g:'FJH',note:'',kids:[]},
+  {n:'Ricardo Miranda Teodoro',g:'FJG',note:'',kids:[]},
+  {n:'Ricardo Santos',g:'ADJD',note:'',kids:[]},
+  {n:'Rita de Cássia Mór',g:'FJH',note:'',kids:[]},
+  {n:'Rosana Zalunche',g:'FJG',note:'',kids:[]},
+  {n:'Sabrina Zalunche',g:'FJG',note:'não convidar',kids:[],status:'excluded'},
+  {n:'Simone Brito',g:'ADJD',note:'',kids:[]},
+  {n:'Sirlei Alves',g:'ADJD',note:'Nicolle',kids:[]},
+  {n:'Solange Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Suzane Romão',g:'FJG',note:'Bruno',kids:[]},
+  {n:'Tereza Mór',g:'FJH',note:'',kids:[]},
+  {n:'Thawany Duarte',g:'AJG',note:'',kids:[]},
+  {n:'Thiago Florêncio',g:'ADJD',note:'',kids:[]},
+  {n:'Tiago Souza',g:'FJH',note:'',kids:[]},
+  {n:'Valeria Guimarães',g:'FJG',note:'atenção: Yohanna está com 10 anos',kids:['Yohanna Guimarães (10 anos)']},
+  {n:'Valquiria Guimarães',g:'FJG',note:'',kids:['Kauan Guimarães']},
+  {n:'Vataro Itu',g:'ADJD',note:'',kids:[]},
+  {n:'Vitinho Dutra',g:'ADJD',note:'',kids:[]},
+  {n:'Vitor Romão',g:'FJG',note:'',kids:[]},
+  {n:'Wellington Lopes',g:'ADJD',note:'',kids:[]},
+  {n:'Wellington Pereira',g:'JDM',note:'',kids:[]},
+  {n:'William Lopes',g:'ADJD',note:'',kids:[]},
+  {n:'Yuri Mello',g:'AJH',note:'',kids:[]},
+  {n:'Marcos Aurélio',g:'FJG',note:'',kids:[]},
+];
+
+function buildInitial() {
+  return SEED.map((s, i) => ({ id: i + 1, name: s.n, group: s.g, note: s.note, kids: s.kids, status: s.status || 'invited' }));
+}
+
+// ── Countdown ────────────────────────────────────────────────
+function useCountdown(target) {
+  const [diff, setDiff] = useState(() => target - Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setDiff(target - Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [target]);
+  const total = Math.max(0, diff);
+  return {
+    d: Math.floor(total / 86400000),
+    h: Math.floor(total / 3600000) % 24,
+    m: Math.floor(total / 60000) % 60,
+    s: Math.floor(total / 1000) % 60,
+  };
+}
+
+function Countdown() {
+  const { d, h, m, s } = useCountdown(new Date('2027-11-20T18:00:00').getTime());
+  const pad = n => String(n).padStart(2, '0');
+  return (
+    <div className="countdown">
+      <div className="cd-block"><div className="cd-num">{d}</div><div className="cd-label">dias</div></div>
+      <div className="cd-sep">:</div>
+      <div className="cd-block"><div className="cd-num">{pad(h)}</div><div className="cd-label">horas</div></div>
+      <div className="cd-sep">:</div>
+      <div className="cd-block"><div className="cd-num">{pad(m)}</div><div className="cd-label">min</div></div>
+      <div className="cd-sep">:</div>
+      <div className="cd-block"><div className="cd-num">{pad(s)}</div><div className="cd-label">seg</div></div>
+    </div>
+  );
+}
+
+
+// ── GroupBadge ────────────────────────────────────────────────
+function GroupBadge({ group }) {
+  const g = GROUPS[group] || { label: group, color: '#888', bg: 'rgba(136,136,136,0.12)' };
+  return <span className="group-badge" style={{ color: g.color, background: g.bg }}>{group}</span>;
+}
+
+// ── StatusPill (click cycles) ─────────────────────────────────
+function StatusPill({ status, onChange }) {
+  const m = STATUS_META[status] || STATUS_META.invited;
+  return (
+    <span className={`status-pill ${m.cls}`} onClick={() => {
+      const idx = STATUS_CYCLE.indexOf(status);
+      onChange(STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length]);
+    }} title="Clique para mudar o status">
+      {m.label}
+    </span>
+  );
+}
+
+// ── GuestModal ────────────────────────────────────────────────
+function GuestModal({ initial, onSave, onClose }) {
+  const isNew = !initial;
+  const [form, setForm] = useState(
+    initial ? { ...initial, kids: [...initial.kids] }
+            : { name: '', group: 'FJH', note: '', kids: [], status: 'invited' }
+  );
+  const [kidInput, setKidInput] = useState('');
+  const kidRef = useRef();
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const addKid = () => {
+    const v = kidInput.trim();
+    if (!v) return;
+    setForm(f => ({ ...f, kids: [...f.kids, v] }));
+    setKidInput('');
+    kidRef.current?.focus();
+  };
+  const removeKid = i => setForm(f => ({ ...f, kids: f.kids.filter((_, x) => x !== i) }));
+  const save = () => { if (form.name.trim()) onSave(form); };
+
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-title">{isNew ? '+ Novo Convidado' : 'Editar Convidado'}</div>
+        <div className="form-group">
+          <label className="form-label">Nome *</label>
+          <input className="form-input" value={form.name} onChange={e => set('name', e.target.value)}
+            placeholder="Nome completo" autoFocus onKeyDown={e => e.key === 'Enter' && save()} />
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+          <div className="form-group">
+            <label className="form-label">Grupo</label>
+            <select className="form-select" value={form.group} onChange={e => set('group', e.target.value)}>
+              {Object.entries(GROUPS).map(([k, v]) => <option key={k} value={k}>{k} — {v.label}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Status</label>
+            <select className="form-select" value={form.status} onChange={e => set('status', e.target.value)}>
+              {Object.entries(STATUS_META).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Observação</label>
+          <input className="form-input" value={form.note} onChange={e => set('note', e.target.value)}
+            placeholder="ex: cônjuge do Fulano..." />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Crianças</label>
+          {form.kids.length > 0 && (
+            <div className="children-tags">
+              {form.kids.map((k, i) => (
+                <div key={i} className="child-tag">{k} <button onClick={() => removeKid(i)}>×</button></div>
+              ))}
+            </div>
+          )}
+          <div className="child-input-row">
+            <input ref={kidRef} className="form-input" value={kidInput} onChange={e => setKidInput(e.target.value)}
+              placeholder="Nome da criança" onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addKid())} />
+            <button className="child-add-btn" onClick={addKid}>+ Add</button>
+          </div>
+        </div>
+        <div className="modal-actions">
+          <button className="btn-cancel" onClick={onClose}>Cancelar</button>
+          <button className="btn-save" onClick={save}>{isNew ? 'Adicionar' : 'Salvar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── DeleteModal ───────────────────────────────────────────────
+function DeleteModal({ guest, onConfirm, onClose }) {
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-title">Remover convidado?</div>
+        <p className="delete-confirm-text">Tem certeza que quer remover <strong>{guest.name}</strong>?</p>
+        <p className="delete-confirm-sub">Essa ação remove para os dois. Use "Restaurar" se mudar de ideia.</p>
+        <div className="modal-actions">
+          <button className="btn-cancel" onClick={onClose}>Cancelar</button>
+          <button className="btn-delete" onClick={onConfirm}>Sim, remover</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── MAIN APP ──────────────────────────────────────────────────
+function App() {
+  const [guests, setGuests] = useState([]);
+  const [search, setSearch] = useState('');
+  const [groupFilter, setGroupFilter] = useState('ALL');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [showExcluded, setShowExcluded] = useState(false);
+  const [sortKey, setSortKey] = useState('name');
+  const [sortDir, setSortDir] = useState(1);
+  const [modal, setModal] = useState(null);
+
+  useEffect(() => {
+    const data = loadGuests();
+    if (data) {
+      setGuests(data.sort((a, b) => (a.id || 0) - (b.id || 0)));
+    } else {
+      const initial = buildInitial();
+      persistGuests(initial);
+      setGuests(initial);
+    }
+  }, []);
+
+  // ── Derived ─────────────────────────────────────────────────
+  const allGroups = [...new Set(SEED.map(s => s.g))];
+
+  const stats = {
+    total:     guests.filter(g => g.status !== 'excluded').length,
+    confirmed: guests.filter(g => g.status === 'confirmed').length,
+    pending:   guests.filter(g => g.status === 'invited').length,
+    excluded:  guests.filter(g => g.status === 'excluded').length,
+    kids:      guests.reduce((a, g) => a + (g.kids || []).length, 0),
+  };
+
+  const filtered = (() => {
+    let list = [...guests];
+    if (!showExcluded) list = list.filter(g => g.status !== 'excluded');
+    if (groupFilter !== 'ALL') list = list.filter(g => g.group === groupFilter);
+    if (statusFilter !== 'ALL') list = list.filter(g => g.status === statusFilter);
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter(g =>
+        g.name.toLowerCase().includes(q) ||
+        (g.note || '').toLowerCase().includes(q) ||
+        (g.kids || []).some(k => k.toLowerCase().includes(q))
+      );
+    }
+    list.sort((a, b) => {
+      const va = sortKey === 'group' ? a.group : a.name.toLowerCase();
+      const vb = sortKey === 'group' ? b.group : b.name.toLowerCase();
+      return va < vb ? -sortDir : va > vb ? sortDir : 0;
+    });
+    return list;
+  })();
+
+  // ── Handlers ────────────────────────────────────────────────
+  const toggleSort = key => { if (sortKey === key) setSortDir(d => -d); else { setSortKey(key); setSortDir(1); } };
+
+  const updateStatus = (id, status) => {
+    setGuests(prev => {
+      const updated = prev.map(g => g.id === id ? { ...g, status } : g);
+      persistGuests(updated);
+      return updated;
+    });
+  };
+
+  const saveGuest = form => {
+    if (modal.type === 'add') {
+      const id = Date.now();
+      setGuests(prev => {
+        const updated = [...prev, { ...form, id }];
+        persistGuests(updated);
+        return updated;
+      });
+    } else {
+      setGuests(prev => {
+        const updated = prev.map(g => g.id === modal.guest.id ? { ...form, id: modal.guest.id } : g);
+        persistGuests(updated);
+        return updated;
+      });
+    }
+    setModal(null);
+  };
+
+  const deleteGuest = id => {
+    setGuests(prev => {
+      const updated = prev.filter(g => g.id !== id);
+      persistGuests(updated);
+      return updated;
+    });
+    setModal(null);
+  };
+
+  const resetData = () => {
+    if (!window.confirm('Isso vai restaurar a lista original. Tem certeza?')) return;
+    const initial = buildInitial();
+    persistGuests(initial);
+    setGuests(initial);
+  };
+
+  const exportCSV = () => {
+    const rows = [['ID','Nome','Grupo','Status','Observação','Crianças']];
+    guests.forEach(g => rows.push([g.id, g.name, g.group, STATUS_META[g.status]?.label || g.status, g.note || '', (g.kids || []).join(' | ')]));
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
+    a.download = 'lista-convidados-JJ.csv';
+    a.click();
+  };
+
+  const arr = (sortDir === 1) ? ' ↑' : ' ↓';
+
+  return (
+    <>
+      {/* HEADER */}
+      <header className="header">
+        <div className="header-inner">
+          <div className="header-ornament">✦ ✦ ✦</div>
+          <div className="header-title">J &amp; J</div>
+          <div className="header-divider"><span className="header-diamond">◆</span></div>
+          <div className="header-subtitle">20 de Novembro de 2027 — Lista de Convidados</div>
+          <Countdown />
+        </div>
+      </header>
+
+      <main className="main">
+
+        {/* STATS */}
+        <div className="stats-grid">
+          <div className={`stat-card total${statusFilter==='ALL'&&groupFilter==='ALL'?' active-filter':''}`}
+            onClick={() => { setStatusFilter('ALL'); setGroupFilter('ALL'); setShowExcluded(false); }}>
+            <div className="stat-number">{stats.total}</div>
+            <div className="stat-label">Adultos</div>
+          </div>
+          <div className={`stat-card confirmed${statusFilter==='confirmed'?' active-filter':''}`}
+            onClick={() => setStatusFilter(s => s==='confirmed'?'ALL':'confirmed')}>
+            <div className="stat-number">{stats.confirmed}</div>
+            <div className="stat-label">Confirmados</div>
+          </div>
+          <div className={`stat-card pending${statusFilter==='invited'?' active-filter':''}`}
+            onClick={() => setStatusFilter(s => s==='invited'?'ALL':'invited')}>
+            <div className="stat-number">{stats.pending}</div>
+            <div className="stat-label">Pendentes</div>
+          </div>
+          <div className="stat-card children">
+            <div className="stat-number">{stats.kids}</div>
+            <div className="stat-label">Crianças</div>
+          </div>
+          <div className={`stat-card excluded${statusFilter==='excluded'?' active-filter':''}`}
+            onClick={() => { setStatusFilter(s => s==='excluded'?'ALL':'excluded'); setShowExcluded(true); }}>
+            <div className="stat-number">{stats.excluded}</div>
+            <div className="stat-label">Não convidar</div>
+          </div>
+        </div>
+
+        {/* CONTROLS */}
+        <div className="controls-row">
+          <div className="search-wrap">
+            <span className="search-icon">🔍</span>
+            <input className="search-input" placeholder="Buscar por nome, nota ou criança..."
+              value={search} onChange={e => setSearch(e.target.value)} />
+          </div>
+          <button className="export-btn" onClick={exportCSV}>⬇ CSV</button>
+          <button className="add-btn" onClick={() => setModal({ type:'add' })}>＋ Adicionar</button>
+        </div>
+
+        {/* GROUP FILTERS */}
+        <div className="group-row">
+          <span style={{fontSize:10,color:'#5B5040',textTransform:'uppercase',letterSpacing:1,marginRight:4}}>Grupo:</span>
+          <button className={`filter-chip${groupFilter==='ALL'?' active':''}`} onClick={() => setGroupFilter('ALL')}>Todos</button>
+          {allGroups.map(g => (
+            <button key={g} className={`filter-chip${groupFilter===g?' active':''}`}
+              onClick={() => setGroupFilter(x => x===g?'ALL':g)}>
+              {g} <span style={{opacity:.5,fontSize:10}}>({guests.filter(x=>x.group===g&&x.status!=='excluded').length})</span>
+            </button>
+          ))}
+          <div className="show-excluded-toggle" onClick={() => setShowExcluded(v => !v)}>
+            <div className={`toggle-switch${showExcluded?' on':''}`}><div className="toggle-knob"/></div>
+            Não convidar
+          </div>
+        </div>
+
+        {/* RESULTS BAR */}
+        <div className="results-bar">
+          <span>
+            {filtered.length === 0 ? 'Nenhum resultado' : `${filtered.length} ${filtered.length===1?'pessoa':'pessoas'}`}
+            {filtered.reduce((a,g)=>a+(g.kids||[]).length,0)>0 && ` + ${filtered.reduce((a,g)=>a+(g.kids||[]).length,0)} crianças`}
+          </span>
+          <button onClick={resetData}
+            style={{background:'none',border:'none',cursor:'pointer',fontSize:11,color:'#C9A84C',textDecoration:'underline'}}>
+            ↺ Restaurar lista original
+          </button>
+        </div>
+
+        {/* TABLE */}
+        <div className="table-wrap">
+          {filtered.length === 0 ? (
+            <div className="empty-state"><div className="empty-icon">💌</div><div>Nenhum convidado encontrado.</div></div>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th style={{width:40,textAlign:'center'}}>#</th>
+                  <th className={sortKey==='name'?'sort-active':''} onClick={() => toggleSort('name')}>Nome{sortKey==='name'?arr:''}</th>
+                  <th className={sortKey==='group'?'sort-active':''} onClick={() => toggleSort('group')} style={{width:90}}>Grupo{sortKey==='group'?arr:''}</th>
+                  <th style={{width:130}}>Status</th>
+                  <th>Crianças / Obs.</th>
+                  <th style={{width:80,textAlign:'center'}}>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((g, idx) => (
+                  <tr key={g.id} className={g.status==='excluded'?'is-excluded':''}>
+                    <td style={{textAlign:'center',color:'#C9A84C',fontSize:12,fontWeight:600}}>{idx+1}</td>
+                    <td>
+                      <div className="guest-name">{g.name}</div>
+                      {g.note && <div className="guest-note">{g.note}</div>}
+                    </td>
+                    <td><GroupBadge group={g.group}/></td>
+                    <td><StatusPill status={g.status} onChange={st => updateStatus(g.id, st)}/></td>
+                    <td>{(g.kids||[]).map((k,i) => <span key={i} className="kid-chip">👶 {k}</span>)}</td>
+                    <td style={{textAlign:'center',whiteSpace:'nowrap'}}>
+                      <button className="action-btn" title="Editar" onClick={() => setModal({type:'edit',guest:g})}>✏️</button>
+                      <button className="action-btn del" title="Remover" onClick={() => setModal({type:'delete',guest:g})}>🗑️</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* LEGEND */}
+        <div style={{marginTop:20,display:'flex',flexWrap:'wrap',gap:8}}>
+          {Object.entries(GROUPS).map(([k,v]) => (
+            <span key={k} className="group-badge" style={{color:v.color,background:v.bg,padding:'4px 10px'}}>
+              <strong>{k}</strong> — {v.label}
+            </span>
+          ))}
+        </div>
+
+      </main>
+
+      {modal?.type==='add'    && <GuestModal onSave={saveGuest} onClose={() => setModal(null)} />}
+      {modal?.type==='edit'   && <GuestModal initial={modal.guest} onSave={saveGuest} onClose={() => setModal(null)} />}
+      {modal?.type==='delete' && <DeleteModal guest={modal.guest} onConfirm={() => deleteGuest(modal.guest.id)} onClose={() => setModal(null)} />}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
