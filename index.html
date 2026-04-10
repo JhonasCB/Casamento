@@ -405,7 +405,7 @@ function StatusPill({ status, onChange }) {
 function GuestModal({ initial, onSave, onClose }) {
   const isNew = !initial;
   const [form, setForm] = useState(
-    initial ? { ...initial, kids: [...initial.kids] }
+    initial ? { ...initial, kids: [...(initial.kids || [])] }
             : { name: '', group: 'FJH', note: '', kids: [], status: 'invited' }
   );
   const [kidInput, setKidInput] = useState('');
