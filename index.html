@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>J & J — Lista de Convidados</title>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
@@ -139,17 +141,19 @@
 <script type="text/babel">
 const { useState, useEffect, useMemo, useRef } = React;
 
-// ── Persistência localStorage ──────────────────────────────────
-const STORAGE_KEY = 'casamento-jj-guests';
-const loadGuests = () => {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : null;
-  } catch { return null; }
+// ── Firebase ───────────────────────────────────────────────────
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyDa3kZz55KfGvJtrUlmOhg-9HOSvCDNjFQ",
+  authDomain:        "casamento-jj.firebaseapp.com",
+  databaseURL:       "https://casamento-jj-default-rtdb.firebaseio.com",
+  projectId:         "casamento-jj",
+  storageBucket:     "casamento-jj.firebasestorage.app",
+  messagingSenderId: "35657642946",
+  appId:             "1:35657642946:web:31f25ba40efaffbe9f1c5b"
 };
-const persistGuests = (list) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-};
+
+firebase.initializeApp(FIREBASE_CONFIG);
+const GUESTS_REF = firebase.database().ref('convidados');
 
 // ── Constants ──────────────────────────────────────────────────
 const GROUPS = {
@@ -489,6 +493,8 @@ function DeleteModal({ guest, onConfirm, onClose }) {
 // ── MAIN APP ──────────────────────────────────────────────────
 function App() {
   const [guests, setGuests] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  const [online, setOnline] = useState(false);
   const [search, setSearch] = useState('');
   const [groupFilter, setGroupFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -498,15 +504,32 @@ function App() {
   const [modal, setModal] = useState(null);
 
   useEffect(() => {
-    const data = loadGuests();
-    if (data) {
-      setGuests(data.sort((a, b) => (a.id || 0) - (b.id || 0)));
-    } else {
-      const initial = buildInitial();
-      persistGuests(initial);
-      setGuests(initial);
-    }
+    GUESTS_REF.on('value', snap => {
+      const data = snap.val();
+      if (data) {
+        setGuests(Object.values(data).sort((a, b) => (a.id || 0) - (b.id || 0)));
+      } else {
+        const initial = buildInitial();
+        const obj = {};
+        initial.forEach(g => { obj[g.id] = g; });
+        GUESTS_REF.set(obj);
+      }
+      setLoaded(true);
+    });
+    firebase.database().ref('.info/connected').on('value', snap => setOnline(!!snap.val()));
+    return () => {
+      GUESTS_REF.off();
+      firebase.database().ref('.info/connected').off();
+    };
   }, []);
+
+  if (!loaded) return (
+    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'#0C0B09',gap:16}}>
+      <div style={{fontSize:40,fontWeight:200,letterSpacing:12,color:'#F5ECD4',fontStyle:'italic'}}>J &amp; J</div>
+      <div style={{width:32,height:32,border:'2px solid rgba(201,168,76,0.15)',borderTopColor:'#C9A84C',borderRadius:'50%',animation:'spin .8s linear infinite'}}/>
+      <div style={{fontSize:12,letterSpacing:2,color:'#5B5040',textTransform:'uppercase'}}>conectando...</div>
+    </div>
+  );
 
   // ── Derived ─────────────────────────────────────────────────
   const allGroups = [...new Set(SEED.map(s => s.g))];
@@ -543,46 +566,26 @@ function App() {
   // ── Handlers ────────────────────────────────────────────────
   const toggleSort = key => { if (sortKey === key) setSortDir(d => -d); else { setSortKey(key); setSortDir(1); } };
 
-  const updateStatus = (id, status) => {
-    setGuests(prev => {
-      const updated = prev.map(g => g.id === id ? { ...g, status } : g);
-      persistGuests(updated);
-      return updated;
-    });
-  };
+  const updateStatus = (id, status) => GUESTS_REF.child(String(id)).update({ status });
 
   const saveGuest = form => {
     if (modal.type === 'add') {
       const id = Date.now();
-      setGuests(prev => {
-        const updated = [...prev, { ...form, id }];
-        persistGuests(updated);
-        return updated;
-      });
+      GUESTS_REF.child(String(id)).set({ ...form, id });
     } else {
-      setGuests(prev => {
-        const updated = prev.map(g => g.id === modal.guest.id ? { ...form, id: modal.guest.id } : g);
-        persistGuests(updated);
-        return updated;
-      });
+      GUESTS_REF.child(String(modal.guest.id)).set({ ...form, id: modal.guest.id });
     }
     setModal(null);
   };
 
-  const deleteGuest = id => {
-    setGuests(prev => {
-      const updated = prev.filter(g => g.id !== id);
-      persistGuests(updated);
-      return updated;
-    });
-    setModal(null);
-  };
+  const deleteGuest = id => { GUESTS_REF.child(String(id)).remove(); setModal(null); };
 
   const resetData = () => {
-    if (!window.confirm('Isso vai restaurar a lista original. Tem certeza?')) return;
+    if (!window.confirm('Isso vai restaurar a lista original para os dois. Tem certeza?')) return;
     const initial = buildInitial();
-    persistGuests(initial);
-    setGuests(initial);
+    const obj = {};
+    initial.forEach(g => { obj[g.id] = g; });
+    GUESTS_REF.set(obj);
   };
 
   const exportCSV = () => {
@@ -601,6 +604,10 @@ function App() {
     <>
       {/* HEADER */}
       <header className="header">
+        <div className={`conn-badge ${online ? 'online' : 'offline'}`}>
+          <div className="conn-dot" />
+          {online ? 'Ao vivo' : 'Offline'}
+        </div>
         <div className="header-inner">
           <div className="header-ornament">✦ ✦ ✦</div>
           <div className="header-title">J &amp; J</div>
