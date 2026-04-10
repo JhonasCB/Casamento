@@ -507,7 +507,7 @@ function App() {
     GUESTS_REF.on('value', snap => {
       const data = snap.val();
       if (data) {
-        setGuests(Object.values(data).sort((a, b) => (a.id || 0) - (b.id || 0)));
+        setGuests(Object.values(data).map(g => ({ ...g, kids: g.kids || [] })).sort((a, b) => (a.id || 0) - (b.id || 0)));
       } else {
         const initial = buildInitial();
         const obj = {};
