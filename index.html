@@ -236,9 +236,10 @@ const FIREBASE_CONFIG = {
 
 firebase.initializeApp(FIREBASE_CONFIG);
 const GUESTS_REF = firebase.database().ref('convidados');
+const GROUPS_REF  = firebase.database().ref('grupos');
 
 // ── Constants ──────────────────────────────────────────────────
-const GROUPS = {
+const SEED_GROUPS = {
   FJH:  { label: 'Família João H',  color: '#60A5FA', bg: 'rgba(96,165,250,0.12)'  },
   FJG:  { label: 'Família Julia G', color: '#F472B6', bg: 'rgba(244,114,182,0.12)' },
   AJH:  { label: 'Amigos João H',   color: '#818CF8', bg: 'rgba(129,140,248,0.12)' },
@@ -248,6 +249,19 @@ const GROUPS = {
   ADJM: { label: 'JD Maringá',      color: '#34D399', bg: 'rgba(52,211,153,0.12)'  },
   ADJN: { label: 'JD Norte',        color: '#2DD4BF', bg: 'rgba(45,212,191,0.12)'  },
 };
+
+const COLOR_OPTIONS = [
+  { color: '#60A5FA', bg: 'rgba(96,165,250,0.15)'   },
+  { color: '#F472B6', bg: 'rgba(244,114,182,0.15)'  },
+  { color: '#818CF8', bg: 'rgba(129,140,248,0.15)'  },
+  { color: '#C084FC', bg: 'rgba(192,132,252,0.15)'  },
+  { color: '#FBB040', bg: 'rgba(251,176,64,0.15)'   },
+  { color: '#34D399', bg: 'rgba(52,211,153,0.15)'   },
+  { color: '#2DD4BF', bg: 'rgba(45,212,191,0.15)'   },
+  { color: '#F87171', bg: 'rgba(248,113,113,0.15)'  },
+  { color: '#FB923C', bg: 'rgba(251,146,60,0.15)'   },
+  { color: '#A78BFA', bg: 'rgba(167,139,250,0.15)'  },
+];
 const STATUS_CYCLE = ['invited','confirmed','declined','excluded'];
 const STATUS_META = {
   invited:   { label: 'Pendente',     cls: 's-invited'   },
@@ -464,9 +478,9 @@ function Countdown() {
 }
 
 // ── GroupBadge ────────────────────────────────────────────────
-function GroupBadge({ group }) {
-  const g = GROUPS[group] || { label: group, color: '#888', bg: 'rgba(136,136,136,0.12)' };
-  return <span className="group-badge" style={{ color: g.color, background: g.bg }}>{group}</span>;
+function GroupBadge({ group, groups }) {
+  const g = (groups || {})[group] || { label: group, color: '#888', bg: 'rgba(136,136,136,0.12)' };
+  return <span className="group-badge" style={{ color: g.color, background: g.bg }}>{g.label || group}</span>;
 }
 
 // ── StatusPill ────────────────────────────────────────────────
@@ -483,11 +497,12 @@ function StatusPill({ status, onChange }) {
 }
 
 // ── GuestModal ────────────────────────────────────────────────
-function GuestModal({ initial, onSave, onClose }) {
+function GuestModal({ initial, onSave, onClose, groups }) {
   const isNew = !initial;
+  const firstGroup = Object.keys(groups || {})[0] || 'FJH';
   const [form, setForm] = useState(
     initial ? { ...initial, kids: [...(initial.kids || [])] }
-            : { name: '', group: 'FJH', note: '', kids: [], status: 'invited' }
+            : { name: '', group: firstGroup, note: '', kids: [], status: 'invited' }
   );
   const [kidInput, setKidInput] = useState('');
   const kidRef = useRef();
@@ -518,7 +533,7 @@ function GuestModal({ initial, onSave, onClose }) {
             <div className="jj-form-group mb-0">
               <label className="jj-form-label">Grupo</label>
               <select className="jj-form-select" value={form.group} onChange={e => set('group', e.target.value)}>
-                {Object.entries(GROUPS).map(([k, v]) => <option key={k} value={k}>{k} — {v.label}</option>)}
+                {Object.entries(groups || {}).map(([k, v]) => <option key={k} value={k}>{k} — {v.label}</option>)}
               </select>
             </div>
           </div>
@@ -580,10 +595,113 @@ function DeleteModal({ guest, onConfirm, onClose }) {
   );
 }
 
+// ── GroupsModal ───────────────────────────────────────────────
+function GroupsModal({ groups, guests, onClose }) {
+  const [editingKey, setEditingKey] = useState(null);
+  const [editLabel, setEditLabel]   = useState('');
+  const [newCode, setNewCode]       = useState('');
+  const [newLabel, setNewLabel]     = useState('');
+  const [newColor, setNewColor]     = useState(COLOR_OPTIONS[0]);
+  const [error, setError]           = useState('');
+
+  const startEdit = (key) => { setEditingKey(key); setEditLabel(groups[key].label); };
+  const saveEdit  = () => {
+    if (!editLabel.trim()) return;
+    GROUPS_REF.child(editingKey).update({ label: editLabel.trim() });
+    setEditingKey(null);
+  };
+
+  const addGroup = () => {
+    const code = newCode.trim().toUpperCase().replace(/\s/g,'');
+    const label = newLabel.trim();
+    if (!code) { setError('Informe um código para o grupo.'); return; }
+    if (!label) { setError('Informe um nome para o grupo.'); return; }
+    if (groups[code]) { setError(`O código "${code}" já existe.`); return; }
+    GROUPS_REF.child(code).set({ label, color: newColor.color, bg: newColor.bg });
+    setNewCode(''); setNewLabel(''); setError('');
+  };
+
+  const deleteGroup = (key) => {
+    const inUse = guests.some(g => g.group === key);
+    if (inUse) { alert(`O grupo "${groups[key].label}" tem convidados. Mova-os antes de excluir.`); return; }
+    if (!window.confirm(`Excluir o grupo "${groups[key].label}"?`)) return;
+    GROUPS_REF.child(key).remove();
+  };
+
+  return (
+    <div className="jj-overlay" onClick={onClose}>
+      <div className="jj-modal" style={{maxWidth:520}} onClick={e => e.stopPropagation()}>
+        <div className="jj-modal-title">⚙️ Gerenciar Grupos</div>
+
+        {/* Lista de grupos existentes */}
+        <div style={{marginBottom:20}}>
+          {Object.entries(groups).map(([key, g]) => (
+            <div key={key} style={{display:'flex',alignItems:'center',gap:8,padding:'8px 0',borderBottom:'1px solid var(--border)'}}>
+              <span className="group-badge" style={{color:g.color,background:g.bg,flexShrink:0,minWidth:48,textAlign:'center'}}>{key}</span>
+              {editingKey === key ? (
+                <>
+                  <input className="jj-form-input" style={{flex:1,padding:'6px 10px'}}
+                    value={editLabel} onChange={e => setEditLabel(e.target.value)}
+                    onKeyDown={e => { if(e.key==='Enter') saveEdit(); if(e.key==='Escape') setEditingKey(null); }}
+                    autoFocus />
+                  <button className="btn-save" style={{padding:'6px 12px',fontSize:12}} onClick={saveEdit}>✓</button>
+                  <button className="btn-cancel" style={{padding:'6px 10px',fontSize:12}} onClick={() => setEditingKey(null)}>✕</button>
+                </>
+              ) : (
+                <>
+                  <span style={{flex:1,color:'var(--text)',fontSize:14}}>{g.label}</span>
+                  <button className="action-btn" title="Renomear" onClick={() => startEdit(key)}>✏️</button>
+                  <button className="action-btn del" title="Excluir" onClick={() => deleteGroup(key)}>🗑️</button>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Adicionar novo grupo */}
+        <div style={{background:'var(--bg)',borderRadius:10,padding:'16px',border:'1px solid var(--border)'}}>
+          <div style={{fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:1.5,color:'var(--accent)',marginBottom:12}}>
+            + Novo Grupo
+          </div>
+          <div className="row g-2 mb-2">
+            <div className="col-4">
+              <label className="jj-form-label">Código</label>
+              <input className="jj-form-input" value={newCode} onChange={e => setNewCode(e.target.value)}
+                placeholder="ex: FAM1" maxLength={6} style={{textTransform:'uppercase'}} />
+            </div>
+            <div className="col-8">
+              <label className="jj-form-label">Nome do Grupo</label>
+              <input className="jj-form-input" value={newLabel} onChange={e => setNewLabel(e.target.value)}
+                placeholder="ex: Amigos do Trabalho"
+                onKeyDown={e => e.key === 'Enter' && addGroup()} />
+            </div>
+          </div>
+          <label className="jj-form-label">Cor</label>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
+            {COLOR_OPTIONS.map((c, i) => (
+              <div key={i} onClick={() => setNewColor(c)}
+                style={{width:28,height:28,borderRadius:'50%',background:c.color,cursor:'pointer',
+                  border: newColor.color===c.color ? '3px solid var(--text)' : '3px solid transparent',
+                  transition:'border .15s'}} />
+            ))}
+          </div>
+          {error && <div style={{color:'#F87171',fontSize:12,marginBottom:8}}>{error}</div>}
+          <button className="btn-save" style={{width:'100%'}} onClick={addGroup}>Adicionar Grupo</button>
+        </div>
+
+        <div className="jj-modal-actions">
+          <button className="btn-cancel" onClick={onClose}>Fechar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── MAIN APP ──────────────────────────────────────────────────
 function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('jj-theme') || 'dark');
   const [guests, setGuests] = useState([]);
+  const [groups, setGroups] = useState({});
   const [loaded, setLoaded] = useState(false);
   const [online, setOnline] = useState(false);
 
@@ -612,9 +730,18 @@ function App() {
       }
       setLoaded(true);
     });
+    GROUPS_REF.on('value', snap => {
+      const data = snap.val();
+      if (data) {
+        setGroups(data);
+      } else {
+        GROUPS_REF.set(SEED_GROUPS);
+      }
+    });
     firebase.database().ref('.info/connected').on('value', snap => setOnline(!!snap.val()));
     return () => {
       GUESTS_REF.off();
+      GROUPS_REF.off();
       firebase.database().ref('.info/connected').off();
     };
   }, []);
@@ -627,7 +754,7 @@ function App() {
     </div>
   );
 
-  const allGroups = Array.from(new Set(SEED.map(s => s.g)));
+  const allGroups = Object.keys(groups);
 
   const stats = {
     total:     guests.filter(g => g.status !== 'excluded').length,
@@ -773,6 +900,7 @@ function App() {
               {g} <span style={{opacity:.5,fontSize:10}}>({guests.filter(x=>x.group===g&&x.status!=='excluded').length})</span>
             </button>
           ))}
+          <button className="export-btn" style={{marginLeft:'auto'}} onClick={() => setModal({type:'groups'})} title="Gerenciar grupos">⚙️ Grupos</button>
           <div className="show-excluded-toggle" onClick={() => setShowExcluded(v => !v)}>
             <div className={`toggle-switch${showExcluded?' on':''}`}><div className="toggle-knob"/></div>
             <span className="d-none d-sm-inline">Não convidar</span>
@@ -822,7 +950,7 @@ function App() {
                         {g.note && <div className="guest-note">{g.note}</div>}
                         {/* no mobile, mostra grupo e kids embaixo do nome */}
                         <div className="d-md-none mt-1">
-                          <GroupBadge group={g.group}/>
+                          <GroupBadge group={g.group} groups={groups}/>
                         </div>
                         {(g.kids||[]).length > 0 && (
                           <div className="d-lg-none mt-1">
@@ -830,7 +958,7 @@ function App() {
                           </div>
                         )}
                       </td>
-                      <td className="d-none d-md-table-cell"><GroupBadge group={g.group}/></td>
+                      <td className="d-none d-md-table-cell"><GroupBadge group={g.group} groups={groups}/></td>
                       <td><StatusPill status={g.status} onChange={st => updateStatus(g.id, st)}/></td>
                       <td className="d-none d-lg-table-cell">
                         {(g.kids||[]).map((k,i) => <span key={i} className="kid-chip">👶 {k}</span>)}
@@ -849,7 +977,7 @@ function App() {
 
         {/* LEGEND */}
         <div className="d-flex flex-wrap gap-2 mt-3">
-          {Object.entries(GROUPS).map(([k,v]) => (
+          {Object.entries(groups).map(([k,v]) => (
             <span key={k} className="group-badge" style={{color:v.color,background:v.bg,padding:'4px 10px'}}>
               <strong>{k}</strong> — {v.label}
             </span>
@@ -858,9 +986,10 @@ function App() {
 
       </div>
 
-      {modal?.type==='add'    && <GuestModal onSave={saveGuest} onClose={() => setModal(null)} />}
-      {modal?.type==='edit'   && <GuestModal initial={modal.guest} onSave={saveGuest} onClose={() => setModal(null)} />}
+      {modal?.type==='add'    && <GuestModal groups={groups} onSave={saveGuest} onClose={() => setModal(null)} />}
+      {modal?.type==='edit'   && <GuestModal groups={groups} initial={modal.guest} onSave={saveGuest} onClose={() => setModal(null)} />}
       {modal?.type==='delete' && <DeleteModal guest={modal.guest} onConfirm={() => deleteGuest(modal.guest.id)} onClose={() => setModal(null)} />}
+      {modal?.type==='groups' && <GroupsModal groups={groups} guests={guests} onClose={() => setModal(null)} />}
     </>
   );
 }
