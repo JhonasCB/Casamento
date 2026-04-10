@@ -777,9 +777,10 @@ function App() {
         (g.kids || []).some(k => k.toLowerCase().includes(q))
       );
     }
+    list = list.filter(g => g && g.name);
     list.sort((a, b) => {
-      const va = sortKey === 'group' ? a.group : a.name.toLowerCase();
-      const vb = sortKey === 'group' ? b.group : b.name.toLowerCase();
+      const va = sortKey === 'group' ? (a.group || '') : (a.name || '').toLowerCase();
+      const vb = sortKey === 'group' ? (b.group || '') : (b.name || '').toLowerCase();
       return va < vb ? -sortDir : va > vb ? sortDir : 0;
     });
     return list;
