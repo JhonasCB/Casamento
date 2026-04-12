@@ -210,6 +210,12 @@
     .loading-text{font-size:12px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase}
     @keyframes spin{to{transform:rotate(360deg)}}
 
+    /* ── Nav ── */
+    .jj-nav{background:var(--bg-card);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;transition:background .3s}
+    .jj-nav-link{padding:11px 20px;font-size:13px;font-weight:600;color:var(--text-muted);text-decoration:none;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;display:block}
+    .jj-nav-link:hover{color:var(--accent)}
+    .jj-nav-link.active{color:var(--accent);border-bottom-color:var(--accent)}
+
     /* ── Mobile ── */
     @media(max-width:576px){
       .jj-modal{border-radius:12px;padding:20px 16px}
@@ -837,6 +843,11 @@ function App() {
           <Countdown />
         </div>
       </header>
+
+      <nav className="jj-nav">
+        <a href="./index.html"        className="jj-nav-link active">👥 Convidados</a>
+        <a href="./fornecedores.html" className="jj-nav-link">🏪 Fornecedores</a>
+      </nav>
 
       <div className="container-fluid px-3 px-md-4" style={{maxWidth:1280,margin:'0 auto',paddingTop:28,paddingBottom:40}}>
 
