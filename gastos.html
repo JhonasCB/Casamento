@@ -114,6 +114,11 @@
     .fin-card-val.yellow{color:#F59E0B}
     .fin-card-val.red{color:#EF4444}
     .fin-card-val.muted{color:var(--text-muted)}
+    .fin-card.orc{cursor:pointer;border-color:var(--accent);border-style:dashed}
+    .fin-card.orc:hover{background:color-mix(in srgb,var(--accent) 6%,transparent)}
+    .fin-orc-edit{width:100%;border:none;background:transparent;color:var(--accent);font-size:clamp(11px,2vw,15px);font-weight:700;text-align:center;outline:none;padding:0;font-family:inherit}
+    .fin-orc-hint{font-size:9px;color:var(--text-muted);margin-top:2px}
+    .fin-alert{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);font-size:12px;color:#EF4444;font-weight:600}
 
     /* ── Controls bar ── */
     .controls-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:center}
@@ -239,6 +244,7 @@ const FIREBASE_CONFIG = {
 firebase.initializeApp(FIREBASE_CONFIG);
 const GASTOS_REF    = firebase.database().ref('gastos');
 const EXTRATO_REF   = firebase.database().ref('extrato');
+const META_REF      = firebase.database().ref('config/meta');
 
 // ── Constantes ─────────────────────────────────────────────────
 const CATEGORIAS = [
@@ -493,10 +499,20 @@ function GastoItem({ gasto, onEdit, onDelete }) {
 }
 
 // ── FinanceSummary ─────────────────────────────────────────────
-function FinanceSummary({ gastos }) {
-  const totalGasto    = gastos.reduce((s, g) => s + (g.valor || 0), 0);
-  const totalPago     = gastos.filter(g => g.status === 'pago').reduce((s, g) => s + (g.valor || 0), 0);
-  const totalPendente = gastos.filter(g => g.status !== 'pago').reduce((s, g) => s + (g.valor || 0), 0);
+function FinanceSummary({ gastos, meta, onMetaSave }) {
+  const [editing,  setEditing]  = useState(false);
+  const [localVal, setLocalVal] = useState('');
+
+  const totalGasto = gastos.reduce((s, g) => s + (g.valor || 0), 0);
+  const totalPago  = gastos.filter(g => g.status === 'pago').reduce((s, g) => s + (g.valor || 0), 0);
+  const restante   = meta > 0 ? meta - totalPago : 0;
+
+  const startEdit = () => { setEditing(true); setLocalVal(meta > 0 ? String(meta) : ''); };
+  const saveMeta  = () => {
+    const n = parseFloat(String(localVal).replace(/\./g, '').replace(',', '.'));
+    if (!isNaN(n) && n >= 0) onMetaSave(n);
+    setEditing(false);
+  };
 
   return (
     <div className="fin-summary">
@@ -509,11 +525,27 @@ function FinanceSummary({ gastos }) {
           <div className="fin-card-label">Já pago</div>
           <div className="fin-card-val green">{fmt(totalPago)}</div>
         </div>
-        <div className="fin-card">
+        <div className="fin-card orc" onClick={!editing ? startEdit : undefined} title="Clique para definir o valor a pagar">
           <div className="fin-card-label">A pagar</div>
-          <div className="fin-card-val yellow">{fmt(totalPendente)}</div>
+          {editing ? (
+            <input className="fin-orc-edit" autoFocus
+              value={localVal} onChange={e => setLocalVal(e.target.value)}
+              onBlur={saveMeta}
+              onKeyDown={e => { if (e.key === 'Enter') saveMeta(); if (e.key === 'Escape') setEditing(false); }}
+              placeholder="ex: 10.000,00" />
+          ) : (
+            <div className={`fin-card-val ${meta > 0 && restante < 0 ? 'red' : 'yellow'}`}>
+              {meta > 0 ? fmt(restante) : '—'}
+            </div>
+          )}
+          {!editing && <div className="fin-orc-hint">{meta > 0 ? `meta: ${fmt(meta)}` : '✏️ definir meta'}</div>}
         </div>
       </div>
+      {meta > 0 && restante < 0 && (
+        <div className="fin-alert" style={{marginTop:10}}>
+          ⚠️ Os pagamentos ultrapassaram a meta em {fmt(Math.abs(restante))}.
+        </div>
+      )}
     </div>
   );
 }
@@ -522,6 +554,7 @@ function FinanceSummary({ gastos }) {
 function App() {
   const [theme,    setTheme]    = useState(() => localStorage.getItem('jj-theme') || 'dark');
   const [gastos,   setGastos]   = useState([]);
+  const [meta,     setMeta]     = useState(0);
   const [loadedG,  setLoadedG]  = useState(false);
   const [online,   setOnline]   = useState(false);
   const [filterSt, setFilterSt] = useState('all');
@@ -552,9 +585,11 @@ function App() {
         list.filter(g => g.status === 'pago').forEach(g => syncExtrato(g));
       }
     });
+    META_REF.on('value', snap => setMeta(snap.val() || 0));
     firebase.database().ref('.info/connected').on('value', snap => setOnline(!!snap.val()));
     return () => {
       GASTOS_REF.off();
+      META_REF.off();
       firebase.database().ref('.info/connected').off();
     };
   }, []);
@@ -671,7 +706,7 @@ function App() {
         style={{maxWidth:960, margin:'0 auto', paddingTop:20, paddingBottom:48}}>
 
         {/* Resumo financeiro */}
-        <FinanceSummary gastos={gastos} />
+        <FinanceSummary gastos={gastos} meta={meta} onMetaSave={v => META_REF.set(v)} />
 
         {/* Alertas de vencimento */}
         {(overdueItems.length > 0 || upcomingItems.length > 0) && (
