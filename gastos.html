@@ -114,15 +114,6 @@
     .fin-card-val.yellow{color:#F59E0B}
     .fin-card-val.red{color:#EF4444}
     .fin-card-val.muted{color:var(--text-muted)}
-    .fin-card.orc{cursor:pointer;border-color:var(--accent);border-style:dashed}
-    .fin-card.orc:hover{background:color-mix(in srgb, var(--accent) 6%, transparent)}
-    .fin-orc-edit{width:100%;border:none;background:transparent;color:var(--accent);font-size:clamp(11px,2vw,15px);font-weight:700;text-align:center;outline:none;padding:0;font-family:inherit}
-    .fin-orc-hint{font-size:9px;color:var(--text-muted);margin-top:2px}
-    .fin-progress-wrap{margin-top:2px}
-    .fin-progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:5px}
-    .fin-progress-bar{background:var(--border);border-radius:8px;height:7px;overflow:hidden}
-    .fin-progress-fill{height:100%;border-radius:8px;transition:width .5s ease,background .5s}
-    .fin-alert{display:flex;align-items:center;gap:8px;margin-top:10px;padding:8px 12px;border-radius:8px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);font-size:12px;color:#EF4444;font-weight:600}
 
     /* ── Controls bar ── */
     .controls-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:center}
@@ -247,7 +238,6 @@ const FIREBASE_CONFIG = {
 };
 firebase.initializeApp(FIREBASE_CONFIG);
 const GASTOS_REF    = firebase.database().ref('gastos');
-const ORCAMENTO_REF = firebase.database().ref('config/orcamento');
 const EXTRATO_REF   = firebase.database().ref('extrato');
 
 // ── Constantes ─────────────────────────────────────────────────
@@ -306,7 +296,7 @@ function GastoModal({ initial, onSave, onClose }) {
 
   const save = () => {
     if (!form.nome.trim() || form.valor === '' || form.valor === null) return;
-    const valorNum = parseFloat(String(form.valor).replace(',', '.'));
+    const valorNum = parseFloat(String(form.valor).replace(/\./g, '').replace(',', '.'));
     if (isNaN(valorNum) || valorNum < 0) return;
     onSave({
       nome:          form.nome.trim(),
@@ -348,9 +338,9 @@ function GastoModal({ initial, onSave, onClose }) {
           <div className="col-12 col-sm-5">
             <div className="jj-form-group mb-0">
               <label className="jj-form-label">Valor (R$) *</label>
-              <input className="jj-form-input" type="number" min="0" step="0.01"
+              <input className="jj-form-input" type="text" inputMode="decimal"
                 value={form.valor} onChange={e => set('valor', e.target.value)}
-                placeholder="0,00" />
+                placeholder="ex: 4.300,00" />
             </div>
           </div>
         </div>
@@ -503,82 +493,27 @@ function GastoItem({ gasto, onEdit, onDelete }) {
 }
 
 // ── FinanceSummary ─────────────────────────────────────────────
-function FinanceSummary({ gastos, orcamento, onOrcamentoSave }) {
-  const [editing, setEditing] = useState(false);
-  const [localVal, setLocalVal] = useState('');
-
+function FinanceSummary({ gastos }) {
   const totalGasto    = gastos.reduce((s, g) => s + (g.valor || 0), 0);
   const totalPago     = gastos.filter(g => g.status === 'pago').reduce((s, g) => s + (g.valor || 0), 0);
   const totalPendente = gastos.filter(g => g.status !== 'pago').reduce((s, g) => s + (g.valor || 0), 0);
-  const saldo         = orcamento - totalGasto;
-  const pct           = orcamento > 0 ? Math.min(100, Math.round(totalGasto / orcamento * 100)) : 0;
-  const barColor      = pct >= 90 ? '#EF4444' : pct >= 75 ? '#F59E0B' : '#4ADE80';
-
-  const startEdit = () => { setEditing(true); setLocalVal(String(orcamento || '')); };
-  const saveOrc   = () => {
-    const n = parseFloat(String(localVal).replace(/\./g, '').replace(',', '.'));
-    if (!isNaN(n) && n >= 0) onOrcamentoSave(n);
-    setEditing(false);
-  };
 
   return (
     <div className="fin-summary">
-      <div className="fin-grid">
-        {/* Orçamento — editável */}
-        <div className="fin-card orc" onClick={!editing ? startEdit : undefined} title="Clique para editar">
-          <div className="fin-card-label">Orçamento</div>
-          {editing ? (
-            <input className="fin-orc-edit" autoFocus
-              value={localVal} onChange={e => setLocalVal(e.target.value)}
-              onBlur={saveOrc}
-              onKeyDown={e => { if (e.key === 'Enter') saveOrc(); if (e.key === 'Escape') setEditing(false); }}
-              placeholder="0" />
-          ) : (
-            <div className="fin-card-val accent">{fmt(orcamento)}</div>
-          )}
-          {!editing && <div className="fin-orc-hint">✏️ editar</div>}
-        </div>
-
+      <div className="fin-grid" style={{gridTemplateColumns:'repeat(3,1fr)'}}>
         <div className="fin-card">
-          <div className="fin-card-label">Total</div>
-          <div className="fin-card-val">{fmt(totalGasto)}</div>
+          <div className="fin-card-label">Total registrado</div>
+          <div className="fin-card-val accent">{fmt(totalGasto)}</div>
         </div>
-
         <div className="fin-card">
-          <div className="fin-card-label">Pago</div>
+          <div className="fin-card-label">Já pago</div>
           <div className="fin-card-val green">{fmt(totalPago)}</div>
         </div>
-
         <div className="fin-card">
-          <div className="fin-card-label">Pendente</div>
+          <div className="fin-card-label">A pagar</div>
           <div className="fin-card-val yellow">{fmt(totalPendente)}</div>
         </div>
-
-        <div className="fin-card">
-          <div className="fin-card-label">Saldo</div>
-          <div className={`fin-card-val ${saldo < 0 ? 'red' : saldo < orcamento * 0.1 ? 'yellow' : 'green'}`}>
-            {fmt(saldo)}
-          </div>
-        </div>
       </div>
-
-      {orcamento > 0 && (
-        <div className="fin-progress-wrap">
-          <div className="fin-progress-label">
-            <span>{pct}% do orçamento comprometido</span>
-            <span style={{color: barColor, fontWeight:700}}>{fmt(totalGasto)} / {fmt(orcamento)}</span>
-          </div>
-          <div className="fin-progress-bar">
-            <div className="fin-progress-fill" style={{width:`${pct}%`, background: barColor}} />
-          </div>
-        </div>
-      )}
-
-      {saldo < 0 && (
-        <div className="fin-alert">
-          ⚠️ Saldo negativo! Os gastos ultrapassam o orçamento em {fmt(Math.abs(saldo))}.
-        </div>
-      )}
     </div>
   );
 }
@@ -587,9 +522,7 @@ function FinanceSummary({ gastos, orcamento, onOrcamentoSave }) {
 function App() {
   const [theme,    setTheme]    = useState(() => localStorage.getItem('jj-theme') || 'dark');
   const [gastos,   setGastos]   = useState([]);
-  const [orcamento,setOrcamento]= useState(0);
   const [loadedG,  setLoadedG]  = useState(false);
-  const [loadedO,  setLoadedO]  = useState(false);
   const [online,   setOnline]   = useState(false);
   const [filterSt, setFilterSt] = useState('all');
   const [filterCat,setFilterCat]= useState('all');
@@ -619,19 +552,14 @@ function App() {
         list.filter(g => g.status === 'pago').forEach(g => syncExtrato(g));
       }
     });
-    ORCAMENTO_REF.on('value', snap => {
-      setOrcamento(snap.val() || 0);
-      setLoadedO(true);
-    });
     firebase.database().ref('.info/connected').on('value', snap => setOnline(!!snap.val()));
     return () => {
       GASTOS_REF.off();
-      ORCAMENTO_REF.off();
       firebase.database().ref('.info/connected').off();
     };
   }, []);
 
-  const loaded = loadedG && loadedO;
+  const loaded = loadedG;
 
   if (!loaded) return (
     <div className="loading-screen">
@@ -705,7 +633,6 @@ function App() {
     lines.push(`\n💰 Total comprometido: ${fmt(totalGasto)}`);
     lines.push(`✅ Pago: ${fmt(totalPago)}`);
     lines.push(`⏳ Pendente: ${fmt(totalPendente)}`);
-    if (orcamento > 0) lines.push(`📊 Orçamento: ${fmt(orcamento)}`);
     navigator.clipboard.writeText(lines.join('\n')).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -744,11 +671,7 @@ function App() {
         style={{maxWidth:960, margin:'0 auto', paddingTop:20, paddingBottom:48}}>
 
         {/* Resumo financeiro */}
-        <FinanceSummary
-          gastos={gastos}
-          orcamento={orcamento}
-          onOrcamentoSave={v => ORCAMENTO_REF.set(v)}
-        />
+        <FinanceSummary gastos={gastos} />
 
         {/* Alertas de vencimento */}
         {(overdueItems.length > 0 || upcomingItems.length > 0) && (
