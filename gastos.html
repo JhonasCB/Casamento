@@ -204,48 +204,11 @@
     .alert-row.upcoming{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);color:#D97706}
     [data-theme="dark"] .alert-row.upcoming{color:#FBB040}
 
-    /* ── Pagamentos Panel ── */
-    .pag-panel{border-top:1px solid var(--border);background:color-mix(in srgb,var(--accent) 2%,var(--bg))}
-    .pag-toggle{width:100%;display:flex;align-items:center;gap:7px;padding:7px 14px;background:none;border:none;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-muted);text-align:left;transition:color .15s}
-    .pag-toggle:hover{color:var(--accent)}
-    .pag-toggle.has-pag{color:var(--accent)}
-    .pag-toggle-arrow{margin-left:auto;font-size:9px;opacity:.6}
-    .pag-paid-pill{font-size:11px;font-weight:400;color:var(--text-muted);background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:1px 8px;margin-left:auto}
-    .pag-body{padding:0 12px 10px 12px;border-top:1px dashed var(--border)}
-    .pag-progress{margin:8px 0}
-    .pag-progress-info{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text-muted);margin-bottom:4px}
-    .pag-quitado{color:#4ADE80;font-weight:700;font-size:11px}
-    .pag-progress-bar{height:4px;background:var(--border);border-radius:4px;overflow:hidden}
-    .pag-progress-bar>div{height:100%;border-radius:4px;transition:width .4s ease}
-    .pag-list{margin:6px 0;display:flex;flex-direction:column;gap:2px}
-    .pag-row{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:var(--bg);font-size:12px}
-    .pag-row:hover{background:var(--bg-row-hover)}
-    .pag-date{white-space:nowrap;color:var(--text-muted);flex-shrink:0;font-size:11px;min-width:76px}
-    .pag-val{font-weight:700;color:var(--text);white-space:nowrap;flex-shrink:0;min-width:80px;text-align:right}
-    .pag-obs{flex:1;color:var(--text-muted);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
-    .pag-del{background:none;border:none;cursor:pointer;padding:2px 5px;color:var(--text-muted);border-radius:4px;font-size:11px;flex-shrink:0;transition:color .1s;line-height:1}
-    .pag-del:hover{color:#DC2626}
-    .pag-add{width:100%;padding:6px 12px;background:none;border:1px dashed var(--border-input);border-radius:7px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-muted);transition:all .15s;margin-top:6px}
-    .pag-add:hover{border-color:var(--accent);color:var(--accent)}
-    .pag-form{background:var(--bg-input);border:1px solid var(--border-input);border-radius:8px;padding:10px;margin-top:6px}
-    .pag-form-row{display:flex;gap:8px;margin-bottom:8px}
-    .pag-form-row input{flex:1;min-width:0;border:1px solid var(--border-input);border-radius:6px;padding:7px 10px;font-size:13px;background:var(--bg-card);color:var(--text);outline:none;font-family:inherit;-webkit-appearance:none;appearance:none}
-    .pag-form-row input:focus{border-color:var(--accent)}
-    .pag-form-row input::placeholder{color:var(--text-ph)}
-    .pag-form textarea{width:100%;border:1px solid var(--border-input);border-radius:6px;padding:7px 10px;font-size:13px;background:var(--bg-card);color:var(--text);outline:none;resize:none;font-family:inherit;margin-bottom:8px;display:block}
-    .pag-form textarea:focus{border-color:var(--accent)}
-    .pag-form textarea::placeholder{color:var(--text-ph)}
-    .pag-form-actions{display:flex;gap:8px;justify-content:flex-end}
-    .pag-form-actions .pf-cancel{padding:6px 14px;background:transparent;border:1px solid var(--cancel-border);border-radius:6px;cursor:pointer;font-size:12px;color:var(--cancel-text);font-family:inherit}
-    .pag-form-actions .pf-save{padding:6px 16px;background:var(--accent);color:var(--accent-text);border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit}
-    .pag-form-actions .pf-save:hover{background:var(--accent-h)}
-
     @media(max-width:640px){
       .fin-grid{grid-template-columns:repeat(3,1fr)}
       .fin-grid .fin-card:nth-child(4),.fin-grid .fin-card:nth-child(5){grid-column:span 1}
       .jj-modal{padding:18px 16px}
       .gasto-nome{font-size:13px}
-      .pag-form-row{flex-direction:column}
     }
     @media(max-width:400px){
       .fin-grid{grid-template-columns:repeat(2,1fr)}
@@ -257,6 +220,20 @@
 <div id="root"></div>
 <script type="text/babel">
 const { useState, useEffect, useRef } = React;
+
+// ── Sincroniza gasto pago com o extrato ───────────────────────
+const syncExtrato = g => {
+  EXTRATO_REF.child(g.id).set({
+    id:             g.id,
+    gastoId:        g.id,
+    gastoNome:      g.nome,
+    gastoCategoria: g.categoria,
+    valor:          g.valor,
+    data:           g.dataVencimento || '',
+    observacao:     g.observacao || '',
+    criadoEm:      g.criadoEm || Date.now(),
+  });
+};
 
 // ── Firebase — mesmo padrão e config do projeto ────────────────
 const FIREBASE_CONFIG = {
@@ -315,8 +292,6 @@ const fromInputDate = ymd => {
 };
 
 const todayDate = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
-const todayStr  = () => { const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
 
 // ── GastoModal ─────────────────────────────────────────────────
 function GastoModal({ initial, onSave, onClose }) {
@@ -469,123 +444,6 @@ function DeleteModal({ gasto, onConfirm, onClose }) {
   );
 }
 
-// ── PagamentosPanel ────────────────────────────────────────────
-function PagamentosPanel({ gasto }) {
-  const [open,       setOpen]       = useState(false);
-  const [pagamentos, setPagamentos] = useState([]);
-  const [showForm,   setShowForm]   = useState(false);
-  const [form,       setForm]       = useState({ valor: '', dataInput: todayStr(), obs: '' });
-
-  useEffect(() => {
-    const ref = GASTOS_REF.child(gasto.id + '/pagamentos');
-    ref.on('value', snap => {
-      const data = snap.val();
-      setPagamentos(data
-        ? Object.values(data).filter(p => p && p.id).sort((a, b) => b.criadoEm - a.criadoEm)
-        : []);
-    });
-    return () => ref.off();
-  }, [gasto.id]);
-
-  const totalPago = pagamentos.reduce((s, p) => s + (p.valor || 0), 0);
-  const pct       = gasto.valor > 0 ? Math.min(100, Math.round(totalPago / gasto.valor * 100)) : 0;
-
-  const savePagamento = () => {
-    const valorNum = parseFloat(String(form.valor).replace(',', '.'));
-    if (isNaN(valorNum) || valorNum <= 0) return;
-    const pid  = String(Date.now());
-    const data = fromInputDate(form.dataInput) || fromInputDate(todayStr());
-    const entry = { id: pid, gastoId: gasto.id, valor: valorNum, data, observacao: form.obs.trim(), criadoEm: Date.now() };
-    GASTOS_REF.child(gasto.id + '/pagamentos/' + pid).set(entry);
-    EXTRATO_REF.child(pid).set({ ...entry, gastoNome: gasto.nome, gastoCategoria: gasto.categoria });
-    if ((totalPago + valorNum) >= gasto.valor && gasto.status !== 'pago') {
-      GASTOS_REF.child(gasto.id).update({ status: 'pago' });
-    }
-    setForm({ valor: '', dataInput: todayStr(), obs: '' });
-    setShowForm(false);
-  };
-
-  const delPag = pid => {
-    if (!window.confirm('Remover este pagamento?')) return;
-    GASTOS_REF.child(gasto.id + '/pagamentos/' + pid).remove();
-    EXTRATO_REF.child(pid).remove();
-  };
-
-  const hasPag = pagamentos.length > 0;
-
-  const toggle = () => {
-    const next = !open;
-    setOpen(next);
-    if (next && !hasPag) setShowForm(true);
-  };
-
-  return (
-    <div className="pag-panel">
-      <button className={`pag-toggle${hasPag ? ' has-pag' : ''}`} onClick={toggle}>
-        <span>💸 {hasPag ? `Ver pagamentos (${pagamentos.length})` : 'Registrar pagamento'}</span>
-        {hasPag && <span className="pag-paid-pill">{fmt(totalPago)} pago</span>}
-        <span className="pag-toggle-arrow">{open ? '▲' : '▼'}</span>
-      </button>
-
-      {open && (
-        <div className="pag-body">
-          {hasPag && gasto.valor > 0 && (
-            <div className="pag-progress">
-              <div className="pag-progress-info">
-                <span>Total pago: <strong>{fmt(totalPago)}</strong> de {fmt(gasto.valor)}</span>
-                {totalPago >= gasto.valor && <span className="pag-quitado">✅ Quitado</span>}
-              </div>
-              <div className="pag-progress-bar">
-                <div style={{width:`${pct}%`, background: pct>=100 ? '#4ADE80' : pct>=75 ? '#F59E0B' : 'var(--accent)'}} />
-              </div>
-            </div>
-          )}
-
-          {hasPag && (
-            <div className="pag-list">
-              {pagamentos.map(p => (
-                <div key={p.id} className="pag-row">
-                  <span className="pag-date">{p.data}</span>
-                  <span className="pag-val">{fmt(p.valor)}</span>
-                  <span className="pag-obs">{p.observacao || '—'}</span>
-                  <button className="pag-del" onClick={() => delPag(p.id)} title="Remover pagamento">🗑️</button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {!showForm && (
-            <button className="pag-add" onClick={() => setShowForm(true)}>＋ Registrar pagamento</button>
-          )}
-
-          {showForm && (
-            <div className="pag-form">
-              <div className="pag-form-row">
-                <input type="number" min="0" step="0.01" placeholder="Valor (R$)"
-                  value={form.valor} autoFocus
-                  onChange={e => setForm(f => ({ ...f, valor: e.target.value }))} />
-                <input type="date" value={form.dataInput}
-                  onChange={e => setForm(f => ({ ...f, dataInput: e.target.value }))} />
-              </div>
-              <textarea rows={2}
-                placeholder="Observação (ex: PIX confirmado, Parcela 2/6, Recibo nº 123...)"
-                value={form.obs}
-                onChange={e => setForm(f => ({ ...f, obs: e.target.value }))} />
-              <div className="pag-form-actions">
-                <button className="pf-cancel"
-                  onClick={() => { setShowForm(false); setForm({ valor: '', dataInput: todayStr(), obs: '' }); }}>
-                  Cancelar
-                </button>
-                <button className="pf-save" onClick={savePagamento}>Salvar</button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ── GastoItem ──────────────────────────────────────────────────
 function GastoItem({ gasto, onEdit, onDelete }) {
   const [showObs, setShowObs] = useState(false);
@@ -598,6 +456,8 @@ function GastoItem({ gasto, onEdit, onDelete }) {
   const cycleStatus = () => {
     const next = STATUS_CYCLE[(STATUS_CYCLE.indexOf(gasto.status) + 1) % STATUS_CYCLE.length];
     GASTOS_REF.child(gasto.id).update({ status: next });
+    if (next === 'pago') syncExtrato({ ...gasto, status: next });
+    else                 EXTRATO_REF.child(gasto.id).remove();
   };
 
   const m = STATUS_META[gasto.status] || STATUS_META.pendente;
@@ -638,8 +498,6 @@ function GastoItem({ gasto, onEdit, onDelete }) {
       {showObs && gasto.observacao && (
         <div className="gasto-obs">{gasto.observacao}</div>
       )}
-
-      <PagamentosPanel gasto={gasto} />
     </div>
   );
 }
@@ -744,11 +602,22 @@ function App() {
     localStorage.setItem('jj-theme', theme);
   }, [theme]);
 
+  // Sincroniza extrato uma vez na primeira carga (migração de dados existentes)
+  const didSync = useRef(false);
+
   useEffect(() => {
     GASTOS_REF.on('value', snap => {
       const data = snap.val();
-      setGastos(data ? Object.values(data).filter(g => g && g.nome) : []);
+      const list = data ? Object.values(data).filter(g => g && g.nome) : [];
+      setGastos(list);
       setLoadedG(true);
+
+      if (!didSync.current) {
+        didSync.current = true;
+        // Limpa extrato inteiro e reconstrói só com os gastos pago
+        EXTRATO_REF.set(null);
+        list.filter(g => g.status === 'pago').forEach(g => syncExtrato(g));
+      }
     });
     ORCAMENTO_REF.on('value', snap => {
       setOrcamento(snap.val() || 0);
@@ -800,21 +669,22 @@ function App() {
   const saveGasto = form => {
     if (modal.type === 'add') {
       const id = String(Date.now());
-      GASTOS_REF.child(id).set({ ...form, id, criadoEm: Date.now() });
+      const gasto = { ...form, id, criadoEm: Date.now() };
+      GASTOS_REF.child(id).set(gasto);
+      if (form.status === 'pago') syncExtrato(gasto);
     } else {
-      // .update() preserves the pagamentos subcollection; .set() would erase it
-      GASTOS_REF.child(modal.gasto.id).update({ ...form, id: modal.gasto.id, criadoEm: modal.gasto.criadoEm || Date.now() });
+      const id    = modal.gasto.id;
+      const gasto = { ...form, id, criadoEm: modal.gasto.criadoEm || Date.now() };
+      GASTOS_REF.child(id).update(gasto);
+      if (form.status === 'pago') syncExtrato(gasto);
+      else                        EXTRATO_REF.child(id).remove();
     }
     setModal(null);
   };
 
   const deleteGasto = id => {
-    // Clean up extrato mirrors before deleting the gasto
-    GASTOS_REF.child(id + '/pagamentos').once('value', snap => {
-      const pags = snap.val();
-      if (pags) Object.keys(pags).forEach(pid => EXTRATO_REF.child(pid).remove());
-      GASTOS_REF.child(id).remove();
-    });
+    EXTRATO_REF.child(id).remove();
+    GASTOS_REF.child(id).remove();
     setModal(null);
   };
 
