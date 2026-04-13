@@ -416,7 +416,7 @@ function GastoModal({ initial, onSave, onClose }) {
           ) : (
             <div className="col-12 col-sm-7">
               <div className="jj-form-group mb-0">
-                <label className="jj-form-label">Data de vencimento</label>
+                <label className="jj-form-label">Data do pagamento</label>
                 <input className="jj-form-input" type="date"
                   value={form._dateInput}
                   onChange={e => set('_dateInput', e.target.value)} />
@@ -619,8 +619,6 @@ function GastoItem({ gasto, onEdit, onDelete }) {
           {gasto.dataVencimento && (
             <div className={`gasto-venc${overdue ? ' venc-overdue' : upcoming ? ' venc-upcoming' : ''}`}>
               📅 {gasto.dataVencimento}
-              {overdue  && ' — Vencido!'}
-              {upcoming && ' — Vence em breve'}
             </div>
           )}
         </div>
@@ -922,7 +920,7 @@ function App() {
             <option value="criadoEm">↕ Mais recentes</option>
             <option value="valor">↕ Maior valor</option>
             <option value="nome">↕ Nome A–Z</option>
-            <option value="vencimento">↕ Vencimento</option>
+            <option value="vencimento">↕ Data do pagamento</option>
           </select>
 
           <div style={{flex:1}} />
