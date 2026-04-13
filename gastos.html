@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>J & J — Gastos</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <style>
+    /* ── Tema Escuro (padrão) ── */
+    :root {
+      --bg:            #0C0B09;
+      --bg-card:       #161410;
+      --bg-input:      #0D0C0A;
+      --bg-row-hover:  #181510;
+      --text:          #E8DEC8;
+      --text-label:    #6B5E45;
+      --text-muted:    #5B5040;
+      --text-ph:       #4B4030;
+      --text-header:   #F5ECD4;
+      --text-hsub:     rgba(255,255,255,0.35);
+      --accent:        #C9A84C;
+      --accent-h:      #E0BC5A;
+      --accent-text:   #0C0B09;
+      --border:        rgba(255,255,255,0.07);
+      --border-input:  rgba(255,255,255,0.1);
+      --border-modal:  rgba(201,168,76,0.2);
+      --header-bg:     linear-gradient(180deg,#0A0806 0%,#140E06 60%,#0C0B09 100%);
+      --header-border: rgba(201,168,76,0.15);
+      --divider-color: rgba(201,168,76,0.6);
+      --bg-thead:      #0D0C0A;
+      --modal-shadow:  0 24px 80px rgba(0,0,0,0.6);
+      --modal-text:    #F5ECD4;
+      --cancel-border: rgba(255,255,255,0.12);
+      --cancel-text:   #8B7A5A;
+    }
+    /* ── Tema Claro ── */
+    [data-theme="light"] {
+      --bg:            #F5F0E8;
+      --bg-card:       #FDFAF5;
+      --bg-input:      #FFFFFF;
+      --bg-row-hover:  #F0E8D8;
+      --text:          #1A2C10;
+      --text-label:    #4A6B2A;
+      --text-muted:    #5A7A38;
+      --text-ph:       #9AB87A;
+      --text-header:   #F5ECD4;
+      --text-hsub:     rgba(245,236,212,0.7);
+      --accent:        #2D5016;
+      --accent-h:      #3A6820;
+      --accent-text:   #F5ECD4;
+      --border:        rgba(45,80,22,0.12);
+      --border-input:  rgba(45,80,22,0.2);
+      --border-modal:  rgba(196,168,76,0.35);
+      --header-bg:     linear-gradient(180deg,#1A3A0A 0%,#2D5016 55%,#3A6820 100%);
+      --header-border: rgba(196,168,76,0.3);
+      --divider-color: rgba(196,168,76,0.7);
+      --bg-thead:      #EDE5D4;
+      --modal-shadow:  0 24px 80px rgba(45,80,22,0.15);
+      --modal-text:    #1A2C10;
+      --cancel-border: rgba(45,80,22,0.2);
+      --cancel-text:   #5A7A38;
+    }
+
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;transition:background .3s,color .3s}
+
+    /* ── Header ── */
+    .jj-header{background:var(--header-bg);color:white;padding:28px 20px 20px;text-align:center;position:relative;overflow:hidden;border-bottom:1px solid var(--header-border);transition:background .3s}
+    .jj-header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+    .jj-header-inner{position:relative;z-index:1}
+    .jj-header-ornament{font-size:14px;letter-spacing:8px;color:var(--accent);opacity:0.8;margin-bottom:8px}
+    [data-theme="light"] .jj-header-ornament{color:#C4A84C}
+    .jj-header-title{font-size:clamp(32px,7vw,50px);font-weight:200;letter-spacing:clamp(6px,2vw,14px);color:var(--text-header);margin-bottom:4px;font-style:italic}
+    .jj-header-divider{display:flex;align-items:center;gap:16px;justify-content:center;margin:8px 0}
+    .jj-header-divider::before,.jj-header-divider::after{content:'';flex:1;max-width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--divider-color))}
+    .jj-header-diamond{color:var(--accent);font-size:10px}
+    [data-theme="light"] .jj-header-diamond{color:#C4A84C}
+    .jj-header-subtitle{font-size:10px;letter-spacing:3px;color:var(--text-hsub);text-transform:uppercase}
+    .conn-badge{position:absolute;top:14px;right:14px;z-index:2;display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.25)}
+    .conn-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+    .conn-badge.online .conn-dot{background:#4ADE80;box-shadow:0 0 6px rgba(74,222,128,0.5)}
+    .conn-badge.online{color:rgba(74,222,128,0.9)}
+    .conn-badge.offline .conn-dot{background:#9CA3AF}
+    .conn-badge.offline{color:rgba(255,255,255,0.4)}
+    .theme-btn{position:absolute;top:14px;left:14px;z-index:2;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.15);border-radius:20px;cursor:pointer;font-size:16px;padding:3px 10px;line-height:1.6;transition:background .15s}
+    .theme-btn:hover{background:rgba(0,0,0,0.4)}
+
+    /* ── Nav ── */
+    .jj-nav{background:var(--bg-card);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;transition:background .3s}
+    .jj-nav-link{padding:11px 20px;font-size:13px;font-weight:600;color:var(--text-muted);text-decoration:none;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;display:block}
+    .jj-nav-link:hover{color:var(--accent)}
+    .jj-nav-link.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+    /* ── Loading ── */
+    .loading-screen{min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+    .loading-logo{font-size:40px;font-weight:200;letter-spacing:12px;color:var(--text-header);font-style:italic}
+    .loading-spinner{width:32px;height:32px;border:2px solid color-mix(in srgb, var(--accent) 20%, transparent);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+    .loading-text{font-size:12px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ── Finance Summary ── */
+    .fin-summary{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:16px}
+    .fin-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
+    .fin-card{text-align:center;padding:10px 6px;border-radius:8px;border:1px solid var(--border);background:var(--bg)}
+    .fin-card-label{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-muted);margin-bottom:4px}
+    .fin-card-val{font-size:clamp(11px,2vw,15px);font-weight:700;color:var(--text);line-height:1.2;word-break:break-all}
+    .fin-card-val.accent{color:var(--accent)}
+    .fin-card-val.green{color:#4ADE80}
+    .fin-card-val.yellow{color:#F59E0B}
+    .fin-card-val.red{color:#EF4444}
+    .fin-card-val.muted{color:var(--text-muted)}
+    .fin-card.orc{cursor:pointer;border-color:var(--accent);border-style:dashed}
+    .fin-card.orc:hover{background:color-mix(in srgb, var(--accent) 6%, transparent)}
+    .fin-orc-edit{width:100%;border:none;background:transparent;color:var(--accent);font-size:clamp(11px,2vw,15px);font-weight:700;text-align:center;outline:none;padding:0;font-family:inherit}
+    .fin-orc-hint{font-size:9px;color:var(--text-muted);margin-top:2px}
+    .fin-progress-wrap{margin-top:2px}
+    .fin-progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:5px}
+    .fin-progress-bar{background:var(--border);border-radius:8px;height:7px;overflow:hidden}
+    .fin-progress-fill{height:100%;border-radius:8px;transition:width .5s ease,background .5s}
+    .fin-alert{display:flex;align-items:center;gap:8px;margin-top:10px;padding:8px 12px;border-radius:8px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);font-size:12px;color:#EF4444;font-weight:600}
+
+    /* ── Controls bar ── */
+    .controls-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:center}
+    .g-select{border:1px solid var(--border-input);border-radius:8px;padding:8px 12px;font-size:13px;background:var(--bg-card);color:var(--text);outline:none;cursor:pointer;font-family:inherit;-webkit-appearance:none;appearance:none}
+    .g-select:focus{border-color:var(--accent)}
+    .g-select option{background:var(--bg-card);color:var(--text)}
+    .filter-chip{padding:7px 14px;border-radius:20px;border:1px solid var(--border-input);background:var(--bg-card);cursor:pointer;font-size:12px;font-weight:500;color:var(--text-muted);transition:all .15s;white-space:nowrap;user-select:none}
+    .filter-chip:hover{border-color:var(--accent);color:var(--accent)}
+    .filter-chip.active{background:var(--accent);color:var(--accent-text);border-color:var(--accent);font-weight:700}
+    .add-btn{display:flex;align-items:center;gap:6px;padding:9px 18px;background:var(--accent);color:var(--accent-text);border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;transition:background .15s;white-space:nowrap}
+    .add-btn:hover{background:var(--accent-h)}
+    .copy-btn{padding:9px 14px;background:var(--bg-card);border:1px solid var(--border-input);border-radius:8px;cursor:pointer;font-size:13px;color:var(--text-muted);transition:all .15s;white-space:nowrap}
+    .copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+    .copy-btn.copied{border-color:#4ADE80;color:#4ADE80}
+
+    /* ── Category section ── */
+    .gasto-category{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px}
+    .gasto-cat-header{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--bg-thead);border-bottom:1px solid var(--border)}
+    .gasto-cat-info{display:flex;align-items:center;gap:7px}
+    .gasto-cat-icon{font-size:15px;line-height:1}
+    .gasto-cat-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-label)}
+    .gasto-cat-total{text-align:right}
+    .gasto-cat-total-val{font-size:13px;font-weight:700;color:var(--accent);display:block}
+    .gasto-cat-total-sub{font-size:9px;color:var(--text-muted);letter-spacing:.5px}
+
+    /* ── Gasto item ── */
+    .gasto-item{border-top:1px solid var(--border);transition:background .1s}
+    .gasto-item:hover{background:var(--bg-row-hover)}
+    .gasto-item.overdue{border-left:3px solid #EF4444}
+    .gasto-item.upcoming{border-left:3px solid #F59E0B}
+    .gasto-main{display:flex;align-items:center;gap:8px;padding:10px 12px;flex-wrap:wrap}
+    .gasto-status-btn{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:none;cursor:pointer;font-size:11px;font-weight:600;transition:opacity .1s;flex-shrink:0;user-select:none;white-space:nowrap}
+    .gasto-status-btn:hover{opacity:.75}
+    .g-pago     {background:rgba(74,222,128,0.12);color:#16A34A;border:1px solid rgba(74,222,128,0.3)}
+    .g-pendente {background:rgba(245,158,11,0.12);color:#D97706;border:1px solid rgba(245,158,11,0.3)}
+    .g-parcelado{background:rgba(96,165,250,0.12);color:#2563EB;border:1px solid rgba(96,165,250,0.3)}
+    [data-theme="dark"] .g-pago{color:#4ADE80}
+    [data-theme="dark"] .g-pendente{color:#FBB040}
+    [data-theme="dark"] .g-parcelado{color:#60A5FA}
+    .gasto-info{flex:1;min-width:0}
+    .gasto-nome{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .gasto-venc{font-size:11px;color:var(--text-muted);margin-top:2px}
+    .gasto-venc.venc-overdue{color:#EF4444;font-weight:600}
+    .gasto-venc.venc-upcoming{color:#F59E0B;font-weight:600}
+    .gasto-valor{font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;flex-shrink:0}
+    .gasto-actions{display:flex;gap:1px;flex-shrink:0}
+    .g-action-btn{background:none;border:none;cursor:pointer;padding:5px 6px;border-radius:6px;font-size:14px;line-height:1;color:var(--text-muted);transition:background .1s}
+    .g-action-btn:hover{background:var(--bg-row-hover);color:var(--accent)}
+    .g-action-btn.del:hover{color:#DC2626;background:rgba(220,38,38,0.08)}
+    .gasto-obs{padding:0 14px 10px 14px;font-size:12px;color:var(--text-muted);font-style:italic;line-height:1.5;border-top:1px dashed var(--border)}
+
+    /* ── Modal ── */
+    .jj-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1050;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);padding:16px}
+    .jj-modal{background:var(--bg-card);border:1px solid var(--border-modal);border-radius:16px;padding:24px 22px;width:100%;max-width:500px;box-shadow:var(--modal-shadow);max-height:90vh;overflow-y:auto}
+    .jj-modal-title{font-size:17px;font-weight:700;color:var(--modal-text);margin-bottom:18px}
+    .jj-form-group{margin-bottom:12px}
+    .jj-form-label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-label);margin-bottom:5px}
+    .jj-form-input,.jj-form-select,.jj-form-textarea{width:100%;border:1px solid var(--border-input);border-radius:8px;padding:9px 12px;font-size:14px;outline:none;background:var(--bg-input);color:var(--text);font-family:inherit;transition:border-color .15s;-webkit-appearance:none;appearance:none}
+    .jj-form-input::placeholder,.jj-form-textarea::placeholder{color:var(--text-ph)}
+    .jj-form-input:focus,.jj-form-select:focus,.jj-form-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent)}
+    .jj-form-select option{background:var(--bg-card);color:var(--text)}
+    .jj-form-textarea{resize:vertical;min-height:64px;line-height:1.5}
+    .jj-modal-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end;flex-wrap:wrap}
+    .btn-cancel{padding:9px 18px;background:transparent;border:1px solid var(--cancel-border);border-radius:8px;cursor:pointer;font-size:14px;color:var(--cancel-text)}
+    .btn-cancel:hover{background:var(--bg-row-hover)}
+    .btn-save{padding:9px 22px;background:var(--accent);color:var(--accent-text);border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700}
+    .btn-save:hover{background:var(--accent-h)}
+    .btn-delete{padding:9px 22px;background:rgba(220,38,38,0.85);color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600}
+    .btn-delete:hover{background:#DC2626}
+
+    /* ── Empty ── */
+    .empty-state{padding:48px 20px;text-align:center;color:var(--text-muted)}
+    .empty-icon{font-size:36px;margin-bottom:12px}
+
+    /* ── Alerts banner ── */
+    .alerts-banner{margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+    .alert-row{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600}
+    .alert-row.overdue{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:#EF4444}
+    .alert-row.upcoming{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);color:#D97706}
+    [data-theme="dark"] .alert-row.upcoming{color:#FBB040}
+
+    @media(max-width:640px){
+      .fin-grid{grid-template-columns:repeat(3,1fr)}
+      .fin-grid .fin-card:nth-child(4),.fin-grid .fin-card:nth-child(5){grid-column:span 1}
+      .jj-modal{padding:18px 16px}
+      .gasto-nome{font-size:13px}
+    }
+    @media(max-width:400px){
+      .fin-grid{grid-template-columns:repeat(2,1fr)}
+      .fin-card.orc{grid-column:span 2}
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// ── Firebase — mesmo padrão e config do projeto ────────────────
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyDa3kZz55KfGvJtrUlmOhg-9HOSvCDNjFQ",
+  authDomain:        "casamento-jj.firebaseapp.com",
+  databaseURL:       "https://casamento-jj-default-rtdb.firebaseio.com",
+  projectId:         "casamento-jj",
+  storageBucket:     "casamento-jj.firebasestorage.app",
+  messagingSenderId: "35657642946",
+  appId:             "1:35657642946:web:31f25ba40efaffbe9f1c5b"
+};
+firebase.initializeApp(FIREBASE_CONFIG);
+const GASTOS_REF    = firebase.database().ref('gastos');
+const ORCAMENTO_REF = firebase.database().ref('config/orcamento');
+
+// ── Constantes ─────────────────────────────────────────────────
+const CATEGORIAS = [
+  { id: 'cerimonia',  label: 'Cerimônia',              icon: '⛪' },
+  { id: 'recepcao',   label: 'Recepção e Festa',        icon: '🥂' },
+  { id: 'doces',      label: 'Doces e Bebidas',         icon: '🎂' },
+  { id: 'foto',       label: 'Foto e Vídeo',            icon: '📸' },
+  { id: 'vestuario',  label: 'Vestuário e Beleza',      icon: '💍' },
+  { id: 'papelaria',  label: 'Papelaria e Comunicação', icon: '📋' },
+  { id: 'viagem',     label: 'Viagem / Lua de Mel',     icon: '✈️' },
+  { id: 'outros',     label: 'Outros',                  icon: '📦' },
+];
+
+const STATUS_CYCLE = ['pendente', 'pago', 'parcelado'];
+const STATUS_META  = {
+  pago:      { label: 'Pago',      icon: '✅', cls: 'g-pago'      },
+  pendente:  { label: 'Pendente',  icon: '⏳', cls: 'g-pendente'  },
+  parcelado: { label: 'Parcelado', icon: '🔄', cls: 'g-parcelado' },
+};
+
+// ── Utilidades ─────────────────────────────────────────────────
+const fmt = v =>
+  (v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+const parseDate = str => {
+  if (!str || !/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return null;
+  const [d, m, y] = str.split('/');
+  const dt = new Date(+y, +m - 1, +d);
+  return isNaN(dt.getTime()) ? null : dt;
+};
+
+const toInputDate  = dmy => {
+  if (!dmy || !/^\d{2}\/\d{2}\/\d{4}$/.test(dmy)) return '';
+  const [d, m, y] = dmy.split('/');
+  return `${y}-${m}-${d}`;
+};
+const fromInputDate = ymd => {
+  if (!ymd) return '';
+  const [y, m, d] = ymd.split('-');
+  return `${d}/${m}/${y}`;
+};
+
+const todayDate = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+
+// ── GastoModal ─────────────────────────────────────────────────
+function GastoModal({ initial, onSave, onClose }) {
+  const isNew = !initial;
+  const [form, setForm] = useState(
+    initial
+      ? { ...initial, _dateInput: toInputDate(initial.dataVencimento) }
+      : { nome:'', categoria:'cerimonia', valor:'', status:'pendente',
+          parcelas:2, parcelaAtual:1, _dateInput:'', observacao:'' }
+  );
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const save = () => {
+    if (!form.nome.trim() || form.valor === '' || form.valor === null) return;
+    const valorNum = parseFloat(String(form.valor).replace(',', '.'));
+    if (isNaN(valorNum) || valorNum < 0) return;
+    onSave({
+      nome:          form.nome.trim(),
+      categoria:     form.categoria,
+      valor:         valorNum,
+      status:        form.status,
+      parcelas:      form.status === 'parcelado' ? Math.max(1, parseInt(form.parcelas) || 1) : 1,
+      parcelaAtual:  form.status === 'parcelado' ? Math.max(1, parseInt(form.parcelaAtual) || 1) : 1,
+      dataVencimento: fromInputDate(form._dateInput),
+      observacao:    form.observacao || '',
+    });
+  };
+
+  return (
+    <div className="jj-overlay" onClick={onClose}>
+      <div className="jj-modal" onClick={e => e.stopPropagation()}>
+        <div className="jj-modal-title">{isNew ? '＋ Novo Gasto' : 'Editar Gasto'}</div>
+
+        <div className="jj-form-group">
+          <label className="jj-form-label">Nome da despesa *</label>
+          <input className="jj-form-input" value={form.nome}
+            onChange={e => set('nome', e.target.value)}
+            placeholder="ex: Fotógrafo, Buffet, Alianças..."
+            autoFocus onKeyDown={e => e.key === 'Enter' && save()} />
+        </div>
+
+        <div className="row g-2 mb-2">
+          <div className="col-12 col-sm-7">
+            <div className="jj-form-group mb-0">
+              <label className="jj-form-label">Categoria</label>
+              <select className="jj-form-select" value={form.categoria}
+                onChange={e => set('categoria', e.target.value)}>
+                {CATEGORIAS.map(c => (
+                  <option key={c.id} value={c.id}>{c.icon} {c.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="col-12 col-sm-5">
+            <div className="jj-form-group mb-0">
+              <label className="jj-form-label">Valor (R$) *</label>
+              <input className="jj-form-input" type="number" min="0" step="0.01"
+                value={form.valor} onChange={e => set('valor', e.target.value)}
+                placeholder="0,00" />
+            </div>
+          </div>
+        </div>
+
+        <div className="row g-2 mb-2">
+          <div className="col-12 col-sm-5">
+            <div className="jj-form-group mb-0">
+              <label className="jj-form-label">Status</label>
+              <select className="jj-form-select" value={form.status}
+                onChange={e => set('status', e.target.value)}>
+                <option value="pendente">⏳ Pendente</option>
+                <option value="pago">✅ Pago</option>
+                <option value="parcelado">🔄 Parcelado</option>
+              </select>
+            </div>
+          </div>
+          {form.status === 'parcelado' ? (
+            <>
+              <div className="col-6 col-sm-3p5" style={{flex:'0 0 auto',width:'27%'}}>
+                <div className="jj-form-group mb-0">
+                  <label className="jj-form-label">Parcela</label>
+                  <input className="jj-form-input" type="number" min="1"
+                    value={form.parcelaAtual}
+                    onChange={e => set('parcelaAtual', e.target.value)}
+                    placeholder="1" />
+                </div>
+              </div>
+              <div className="col-6 col-sm-3p5" style={{flex:'0 0 auto',width:'27%'}}>
+                <div className="jj-form-group mb-0">
+                  <label className="jj-form-label">Total</label>
+                  <input className="jj-form-input" type="number" min="1"
+                    value={form.parcelas}
+                    onChange={e => set('parcelas', e.target.value)}
+                    placeholder="12" />
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="col-12 col-sm-7">
+              <div className="jj-form-group mb-0">
+                <label className="jj-form-label">Data de vencimento</label>
+                <input className="jj-form-input" type="date"
+                  value={form._dateInput}
+                  onChange={e => set('_dateInput', e.target.value)} />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {form.status === 'parcelado' && (
+          <div className="jj-form-group">
+            <label className="jj-form-label">Data de vencimento</label>
+            <input className="jj-form-input" type="date"
+              value={form._dateInput}
+              onChange={e => set('_dateInput', e.target.value)} />
+          </div>
+        )}
+
+        <div className="jj-form-group">
+          <label className="jj-form-label">Observação</label>
+          <textarea className="jj-form-textarea" value={form.observacao}
+            onChange={e => set('observacao', e.target.value)}
+            placeholder="Fornecedor, forma de pagamento, contato..." rows={2} />
+        </div>
+
+        <div className="jj-modal-actions">
+          <button className="btn-cancel" onClick={onClose}>Cancelar</button>
+          <button className="btn-save" onClick={save}>{isNew ? 'Adicionar' : 'Salvar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── DeleteModal ────────────────────────────────────────────────
+function DeleteModal({ gasto, onConfirm, onClose }) {
+  return (
+    <div className="jj-overlay" onClick={onClose}>
+      <div className="jj-modal" style={{maxWidth:380}} onClick={e => e.stopPropagation()}>
+        <div className="jj-modal-title">Remover gasto?</div>
+        <p style={{fontSize:14,color:'var(--modal-text)',lineHeight:1.6,marginBottom:4}}>
+          Remover <strong>{gasto.nome}</strong> ({fmt(gasto.valor)})?
+        </p>
+        <p style={{fontSize:12,color:'var(--text-muted)'}}>Essa ação remove para os dois.</p>
+        <div className="jj-modal-actions">
+          <button className="btn-cancel" onClick={onClose}>Cancelar</button>
+          <button className="btn-delete" onClick={onConfirm}>Sim, remover</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── GastoItem ──────────────────────────────────────────────────
+function GastoItem({ gasto, onEdit, onDelete }) {
+  const [showObs, setShowObs] = useState(false);
+  const today = todayDate();
+  const in7   = new Date(today); in7.setDate(today.getDate() + 7);
+  const vd    = parseDate(gasto.dataVencimento);
+  const overdue  = vd && vd < today  && gasto.status !== 'pago';
+  const upcoming = vd && vd >= today && vd <= in7 && gasto.status !== 'pago';
+
+  const cycleStatus = () => {
+    const next = STATUS_CYCLE[(STATUS_CYCLE.indexOf(gasto.status) + 1) % STATUS_CYCLE.length];
+    GASTOS_REF.child(gasto.id).update({ status: next });
+  };
+
+  const m = STATUS_META[gasto.status] || STATUS_META.pendente;
+
+  return (
+    <div className={`gasto-item${overdue ? ' overdue' : upcoming ? ' upcoming' : ''}`}>
+      <div className="gasto-main">
+        <button className={`gasto-status-btn ${m.cls}`} onClick={cycleStatus}
+          title="Clique para mudar status">
+          {m.icon}{' '}
+          <span>
+            {m.label}
+            {gasto.status === 'parcelado' && ` ${gasto.parcelaAtual}/${gasto.parcelas}`}
+          </span>
+        </button>
+
+        <div className="gasto-info">
+          <div className="gasto-nome">{gasto.nome}</div>
+          {gasto.dataVencimento && (
+            <div className={`gasto-venc${overdue ? ' venc-overdue' : upcoming ? ' venc-upcoming' : ''}`}>
+              📅 {gasto.dataVencimento}
+              {overdue  && ' — Vencido!'}
+              {upcoming && ' — Vence em breve'}
+            </div>
+          )}
+        </div>
+
+        <div className="gasto-valor">{fmt(gasto.valor)}</div>
+
+        <div className="gasto-actions">
+          {gasto.observacao && (
+            <button className="g-action-btn" onClick={() => setShowObs(v => !v)}
+              title="Observação" style={showObs ? {color:'var(--accent)'} : {}}>💬</button>
+          )}
+          <button className="g-action-btn" onClick={onEdit} title="Editar">✏️</button>
+          <button className="g-action-btn del" onClick={onDelete} title="Remover">🗑️</button>
+        </div>
+      </div>
+
+      {showObs && gasto.observacao && (
+        <div className="gasto-obs">{gasto.observacao}</div>
+      )}
+    </div>
+  );
+}
+
+// ── FinanceSummary ─────────────────────────────────────────────
+function FinanceSummary({ gastos, orcamento, onOrcamentoSave }) {
+  const [editing, setEditing] = useState(false);
+  const [localVal, setLocalVal] = useState('');
+
+  const totalGasto    = gastos.reduce((s, g) => s + (g.valor || 0), 0);
+  const totalPago     = gastos.filter(g => g.status === 'pago').reduce((s, g) => s + (g.valor || 0), 0);
+  const totalPendente = gastos.filter(g => g.status !== 'pago').reduce((s, g) => s + (g.valor || 0), 0);
+  const saldo         = orcamento - totalGasto;
+  const pct           = orcamento > 0 ? Math.min(100, Math.round(totalGasto / orcamento * 100)) : 0;
+  const barColor      = pct >= 90 ? '#EF4444' : pct >= 75 ? '#F59E0B' : '#4ADE80';
+
+  const startEdit = () => { setEditing(true); setLocalVal(String(orcamento || '')); };
+  const saveOrc   = () => {
+    const n = parseFloat(String(localVal).replace(/\./g, '').replace(',', '.'));
+    if (!isNaN(n) && n >= 0) onOrcamentoSave(n);
+    setEditing(false);
+  };
+
+  return (
+    <div className="fin-summary">
+      <div className="fin-grid">
+        {/* Orçamento — editável */}
+        <div className="fin-card orc" onClick={!editing ? startEdit : undefined} title="Clique para editar">
+          <div className="fin-card-label">Orçamento</div>
+          {editing ? (
+            <input className="fin-orc-edit" autoFocus
+              value={localVal} onChange={e => setLocalVal(e.target.value)}
+              onBlur={saveOrc}
+              onKeyDown={e => { if (e.key === 'Enter') saveOrc(); if (e.key === 'Escape') setEditing(false); }}
+              placeholder="0" />
+          ) : (
+            <div className="fin-card-val accent">{fmt(orcamento)}</div>
+          )}
+          {!editing && <div className="fin-orc-hint">✏️ editar</div>}
+        </div>
+
+        <div className="fin-card">
+          <div className="fin-card-label">Total</div>
+          <div className="fin-card-val">{fmt(totalGasto)}</div>
+        </div>
+
+        <div className="fin-card">
+          <div className="fin-card-label">Pago</div>
+          <div className="fin-card-val green">{fmt(totalPago)}</div>
+        </div>
+
+        <div className="fin-card">
+          <div className="fin-card-label">Pendente</div>
+          <div className="fin-card-val yellow">{fmt(totalPendente)}</div>
+        </div>
+
+        <div className="fin-card">
+          <div className="fin-card-label">Saldo</div>
+          <div className={`fin-card-val ${saldo < 0 ? 'red' : saldo < orcamento * 0.1 ? 'yellow' : 'green'}`}>
+            {fmt(saldo)}
+          </div>
+        </div>
+      </div>
+
+      {orcamento > 0 && (
+        <div className="fin-progress-wrap">
+          <div className="fin-progress-label">
+            <span>{pct}% do orçamento comprometido</span>
+            <span style={{color: barColor, fontWeight:700}}>{fmt(totalGasto)} / {fmt(orcamento)}</span>
+          </div>
+          <div className="fin-progress-bar">
+            <div className="fin-progress-fill" style={{width:`${pct}%`, background: barColor}} />
+          </div>
+        </div>
+      )}
+
+      {saldo < 0 && (
+        <div className="fin-alert">
+          ⚠️ Saldo negativo! Os gastos ultrapassam o orçamento em {fmt(Math.abs(saldo))}.
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── App ────────────────────────────────────────────────────────
+function App() {
+  const [theme,    setTheme]    = useState(() => localStorage.getItem('jj-theme') || 'dark');
+  const [gastos,   setGastos]   = useState([]);
+  const [orcamento,setOrcamento]= useState(0);
+  const [loadedG,  setLoadedG]  = useState(false);
+  const [loadedO,  setLoadedO]  = useState(false);
+  const [online,   setOnline]   = useState(false);
+  const [filterSt, setFilterSt] = useState('all');
+  const [filterCat,setFilterCat]= useState('all');
+  const [sortBy,   setSortBy]   = useState('criadoEm');
+  const [modal,    setModal]    = useState(null);
+  const [copied,   setCopied]   = useState(false);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('jj-theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    GASTOS_REF.on('value', snap => {
+      const data = snap.val();
+      setGastos(data ? Object.values(data).filter(g => g && g.nome) : []);
+      setLoadedG(true);
+    });
+    ORCAMENTO_REF.on('value', snap => {
+      setOrcamento(snap.val() || 0);
+      setLoadedO(true);
+    });
+    firebase.database().ref('.info/connected').on('value', snap => setOnline(!!snap.val()));
+    return () => {
+      GASTOS_REF.off();
+      ORCAMENTO_REF.off();
+      firebase.database().ref('.info/connected').off();
+    };
+  }, []);
+
+  const loaded = loadedG && loadedO;
+
+  if (!loaded) return (
+    <div className="loading-screen">
+      <div className="loading-logo">J &amp; J</div>
+      <div className="loading-spinner" />
+      <div className="loading-text">conectando...</div>
+    </div>
+  );
+
+  // ── Filtragem e ordenação ──
+  let filtered = gastos.filter(g => {
+    if (filterSt  !== 'all' && g.status    !== filterSt)  return false;
+    if (filterCat !== 'all' && g.categoria !== filterCat) return false;
+    return true;
+  });
+
+  filtered = [...filtered].sort((a, b) => {
+    if (sortBy === 'valor') return (b.valor || 0) - (a.valor || 0);
+    if (sortBy === 'nome')  return (a.nome||'').localeCompare(b.nome||'');
+    if (sortBy === 'vencimento') {
+      const da = parseDate(a.dataVencimento), db = parseDate(b.dataVencimento);
+      if (!da && !db) return 0; if (!da) return 1; if (!db) return -1;
+      return da - db;
+    }
+    return (b.criadoEm || 0) - (a.criadoEm || 0);
+  });
+
+  // ── Alertas ──
+  const today = todayDate();
+  const in7   = new Date(today); in7.setDate(today.getDate() + 7);
+  const overdueItems  = gastos.filter(g => { const d = parseDate(g.dataVencimento); return d && d < today  && g.status !== 'pago'; });
+  const upcomingItems = gastos.filter(g => { const d = parseDate(g.dataVencimento); return d && d >= today && d <= in7 && g.status !== 'pago'; });
+
+  // ── Ações ──
+  const saveGasto = form => {
+    if (modal.type === 'add') {
+      const id = String(Date.now());
+      GASTOS_REF.child(id).set({ ...form, id, criadoEm: Date.now() });
+    } else {
+      GASTOS_REF.child(modal.gasto.id).set({ ...form, id: modal.gasto.id, criadoEm: modal.gasto.criadoEm || Date.now() });
+    }
+    setModal(null);
+  };
+
+  const deleteGasto = id => { GASTOS_REF.child(id).remove(); setModal(null); };
+
+  const copyResumo = () => {
+    const totalGasto    = gastos.reduce((s, g) => s + (g.valor || 0), 0);
+    const totalPago     = gastos.filter(g => g.status === 'pago').reduce((s, g) => s + (g.valor || 0), 0);
+    const totalPendente = gastos.filter(g => g.status !== 'pago').reduce((s, g) => s + (g.valor || 0), 0);
+    const lines = ['💒 *Gastos J&J*\n'];
+    CATEGORIAS.forEach(cat => {
+      const items = gastos.filter(g => g.categoria === cat.id);
+      if (!items.length) return;
+      lines.push(`\n${cat.icon} *${cat.label}*`);
+      items.forEach(g => {
+        const icon = g.status === 'pago' ? '✅' : g.status === 'parcelado' ? `🔄 ${g.parcelaAtual}/${g.parcelas}` : '⏳';
+        lines.push(`${icon} ${g.nome} — ${fmt(g.valor)}`);
+      });
+    });
+    lines.push(`\n💰 Total comprometido: ${fmt(totalGasto)}`);
+    lines.push(`✅ Pago: ${fmt(totalPago)}`);
+    lines.push(`⏳ Pendente: ${fmt(totalPendente)}`);
+    if (orcamento > 0) lines.push(`📊 Orçamento: ${fmt(orcamento)}`);
+    navigator.clipboard.writeText(lines.join('\n')).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  // ── Render ──
+  return (
+    <>
+      <header className="jj-header">
+        <button className="theme-btn"
+          onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+          title={theme === 'dark' ? 'Tema claro' : 'Tema escuro'}>
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
+        <div className={`conn-badge ${online ? 'online' : 'offline'}`}>
+          <div className="conn-dot" />
+          {online ? 'Ao vivo' : 'Offline'}
+        </div>
+        <div className="jj-header-inner">
+          <div className="jj-header-ornament">✦ ✦ ✦</div>
+          <div className="jj-header-title">J &amp; J</div>
+          <div className="jj-header-divider"><span className="jj-header-diamond">◆</span></div>
+          <div className="jj-header-subtitle">20 de Novembro de 2027 — Controle Financeiro</div>
+        </div>
+      </header>
+
+      <nav className="jj-nav">
+        <a href="./index.html"        className="jj-nav-link">👥 Convidados</a>
+        <a href="./fornecedores.html" className="jj-nav-link">🏪 Fornecedores</a>
+        <a href="./gastos.html"       className="jj-nav-link active">💰 Gastos</a>
+      </nav>
+
+      <div className="container-fluid px-3 px-md-4"
+        style={{maxWidth:960, margin:'0 auto', paddingTop:20, paddingBottom:48}}>
+
+        {/* Resumo financeiro */}
+        <FinanceSummary
+          gastos={gastos}
+          orcamento={orcamento}
+          onOrcamentoSave={v => ORCAMENTO_REF.set(v)}
+        />
+
+        {/* Alertas de vencimento */}
+        {(overdueItems.length > 0 || upcomingItems.length > 0) && (
+          <div className="alerts-banner">
+            {overdueItems.length > 0 && (
+              <div className="alert-row overdue">
+                🚨 {overdueItems.length} {overdueItems.length === 1 ? 'vencimento atrasado' : 'vencimentos atrasados'}:
+                {' '}{overdueItems.map(g => g.nome).join(', ')}
+              </div>
+            )}
+            {upcomingItems.length > 0 && (
+              <div className="alert-row upcoming">
+                ⚠️ {upcomingItems.length} {upcomingItems.length === 1 ? 'vencimento' : 'vencimentos'} nos próximos 7 dias:
+                {' '}{upcomingItems.map(g => g.nome).join(', ')}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Barra de controles */}
+        <div className="controls-bar">
+          {/* Filtro por status */}
+          {['all','pendente','pago','parcelado'].map(s => (
+            <button key={s}
+              className={`filter-chip${filterSt === s ? ' active' : ''}`}
+              onClick={() => setFilterSt(s)}>
+              {s === 'all' ? 'Todos' : STATUS_META[s].icon + ' ' + STATUS_META[s].label}
+            </button>
+          ))}
+
+          {/* Filtro por categoria */}
+          <select className="g-select" value={filterCat} onChange={e => setFilterCat(e.target.value)}>
+            <option value="all">Todas categorias</option>
+            {CATEGORIAS.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
+          </select>
+
+          {/* Ordenação */}
+          <select className="g-select" value={sortBy} onChange={e => setSortBy(e.target.value)}>
+            <option value="criadoEm">↕ Mais recentes</option>
+            <option value="valor">↕ Maior valor</option>
+            <option value="nome">↕ Nome A–Z</option>
+            <option value="vencimento">↕ Vencimento</option>
+          </select>
+
+          <div style={{flex:1}} />
+
+          <button className={`copy-btn${copied ? ' copied' : ''}`} onClick={copyResumo}>
+            {copied ? '✓ Copiado!' : '📋 Copiar resumo'}
+          </button>
+
+          <button className="add-btn" onClick={() => setModal({ type: 'add' })}>
+            ＋ <span>Novo gasto</span>
+          </button>
+        </div>
+
+        {/* Lista agrupada por categoria */}
+        {gastos.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">💸</div>
+            <div style={{fontSize:15,fontWeight:600,marginBottom:6}}>Nenhum gasto registrado ainda</div>
+            <div style={{fontSize:13}}>Clique em "+ Novo gasto" para começar</div>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">🔍</div>
+            <div>Nenhum gasto encontrado com esses filtros.</div>
+          </div>
+        ) : (
+          CATEGORIAS.map(cat => {
+            const catFiltered = filtered.filter(g => g.categoria === cat.id);
+            if (catFiltered.length === 0) return null;
+            const catTotal = gastos
+              .filter(g => g.categoria === cat.id)
+              .reduce((s, g) => s + (g.valor || 0), 0);
+            const catPago = gastos
+              .filter(g => g.categoria === cat.id && g.status === 'pago')
+              .reduce((s, g) => s + (g.valor || 0), 0);
+            return (
+              <div key={cat.id} className="gasto-category">
+                <div className="gasto-cat-header">
+                  <div className="gasto-cat-info">
+                    <span className="gasto-cat-icon">{cat.icon}</span>
+                    <span className="gasto-cat-label">{cat.label}</span>
+                    <span style={{fontSize:11,color:'var(--text-muted)',marginLeft:4}}>
+                      ({gastos.filter(g => g.categoria === cat.id).length})
+                    </span>
+                  </div>
+                  <div className="gasto-cat-total">
+                    <span className="gasto-cat-total-val">{fmt(catTotal)}</span>
+                    <span className="gasto-cat-total-sub">
+                      {fmt(catPago)} pago
+                    </span>
+                  </div>
+                </div>
+                {catFiltered.map(g => (
+                  <GastoItem key={g.id} gasto={g}
+                    onEdit={() => setModal({ type: 'edit', gasto: g })}
+                    onDelete={() => setModal({ type: 'delete', gasto: g })}
+                  />
+                ))}
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Modals */}
+      {modal?.type === 'add'    && <GastoModal onSave={saveGasto} onClose={() => setModal(null)} />}
+      {modal?.type === 'edit'   && <GastoModal initial={modal.gasto} onSave={saveGasto} onClose={() => setModal(null)} />}
+      {modal?.type === 'delete' && (
+        <DeleteModal gasto={modal.gasto}
+          onConfirm={() => deleteGasto(modal.gasto.id)}
+          onClose={() => setModal(null)} />
+      )}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
