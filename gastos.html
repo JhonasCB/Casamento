@@ -291,40 +291,71 @@ const fromInputDate = ymd => {
 
 const todayDate = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
 
-// ── LoginModal ────────────────────────────────────────────────
-function LoginModal({ onClose }) {
+// ── LoginGate ─────────────────────────────────────────────────
+function LoginGate() {
+  const [mode, setMode] = useState('choose');
   const [email, setEmail] = useState('');
   const [pw, setPw]       = useState('');
   const [err, setErr]     = useState('');
   const [busy, setBusy]   = useState(false);
-  const submit = () => {
+
+  const loginAdmin = () => {
     setBusy(true); setErr('');
     firebase.auth().signInWithEmailAndPassword(email, pw)
-      .then(onClose)
       .catch(() => { setErr('E-mail ou senha incorretos.'); setBusy(false); });
   };
+
   return (
-    <div className="jj-overlay" onClick={onClose}>
-      <div className="jj-modal" style={{maxWidth:340}} onClick={e => e.stopPropagation()}>
-        <div className="jj-modal-title">🔑 Acesso Admin</div>
-        <div className="jj-form-group">
-          <label className="jj-form-label">E-mail</label>
-          <input className="jj-form-input" type="email" autoFocus value={email}
-            onChange={e => setEmail(e.target.value)} />
+    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'var(--bg)',padding:'24px',gap:28}}>
+      <div style={{textAlign:'center'}}>
+        <div style={{fontSize:13,letterSpacing:8,color:'var(--accent)',opacity:.8,marginBottom:12}}>✦ ✦ ✦</div>
+        <div style={{fontSize:'clamp(40px,10vw,64px)',fontWeight:200,letterSpacing:'clamp(8px,2vw,16px)',color:'var(--text-header)',fontStyle:'italic'}}>J &amp; J</div>
+        <div style={{display:'flex',alignItems:'center',gap:16,justifyContent:'center',margin:'10px 0'}}>
+          <div style={{flex:1,maxWidth:80,height:1,background:'linear-gradient(90deg,transparent,rgba(201,168,76,.6))'}} />
+          <span style={{color:'var(--accent)',fontSize:10}}>◆</span>
+          <div style={{flex:1,maxWidth:80,height:1,background:'linear-gradient(90deg,rgba(201,168,76,.6),transparent)'}} />
         </div>
-        <div className="jj-form-group">
-          <label className="jj-form-label">Senha</label>
-          <input className="jj-form-input" type="password" value={pw}
-            onChange={e => setPw(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && submit()} />
-        </div>
-        {err && <p style={{color:'#EF4444',fontSize:12,margin:'0 0 10px'}}>{err}</p>}
-        <div className="jj-modal-actions">
-          <button className="btn-cancel" onClick={onClose}>Cancelar</button>
-          <button className="btn-save" onClick={submit} disabled={busy}>
-            {busy ? 'Entrando...' : 'Entrar'}
-          </button>
-        </div>
+        <div style={{fontSize:11,letterSpacing:3,color:'var(--text-muted)',textTransform:'uppercase'}}>20 de Novembro de 2027</div>
+      </div>
+      <div style={{background:'var(--bg-card)',border:'1px solid var(--border-modal)',borderRadius:16,padding:'28px 24px',width:'100%',maxWidth:320,boxShadow:'var(--modal-shadow)'}}>
+        {mode === 'choose' ? (
+          <>
+            <div style={{fontSize:13,textAlign:'center',color:'var(--text-muted)',marginBottom:20,lineHeight:1.6}}>
+              Como você deseja continuar?
+            </div>
+            <button style={{width:'100%',padding:'12px',background:'var(--accent)',color:'var(--accent-text)',border:'none',borderRadius:8,cursor:'pointer',fontSize:14,fontWeight:700,marginBottom:10,fontFamily:'inherit'}}
+              onClick={() => setMode('admin')}>
+              🔑 Entrar como administrador
+            </button>
+            <button style={{width:'100%',padding:'12px',background:'transparent',color:'var(--text-muted)',border:'1px solid var(--border)',borderRadius:8,cursor:'pointer',fontSize:13,fontFamily:'inherit'}}
+              onClick={() => firebase.auth().signInAnonymously()}>
+              👁 Continuar como convidado
+            </button>
+          </>
+        ) : (
+          <>
+            <div style={{fontSize:15,fontWeight:700,color:'var(--modal-text)',marginBottom:16}}>🔑 Acesso Administrativo</div>
+            <div style={{marginBottom:10}}>
+              <label style={{display:'block',fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1.5,color:'var(--text-label)',marginBottom:5}}>E-mail</label>
+              <input className="jj-form-input" type="email" autoFocus value={email} onChange={e => setEmail(e.target.value)} />
+            </div>
+            <div style={{marginBottom:12}}>
+              <label style={{display:'block',fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1.5,color:'var(--text-label)',marginBottom:5}}>Senha</label>
+              <input className="jj-form-input" type="password" value={pw}
+                onChange={e => setPw(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && loginAdmin()} />
+            </div>
+            {err && <p style={{color:'#EF4444',fontSize:12,margin:'0 0 12px'}}>{err}</p>}
+            <button style={{width:'100%',padding:'12px',background:'var(--accent)',color:'var(--accent-text)',border:'none',borderRadius:8,cursor:'pointer',fontSize:14,fontWeight:700,marginBottom:8,fontFamily:'inherit'}}
+              onClick={loginAdmin} disabled={busy}>
+              {busy ? 'Entrando...' : 'Entrar'}
+            </button>
+            <button style={{width:'100%',padding:'12px',background:'transparent',color:'var(--text-muted)',border:'1px solid var(--border)',borderRadius:8,cursor:'pointer',fontSize:13,fontFamily:'inherit'}}
+              onClick={() => { setMode('choose'); setErr(''); setPw(''); }}>
+              ← Voltar
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -603,9 +634,8 @@ function App() {
   const [sortBy,     setSortBy]     = useState('criadoEm');
   const [modal,      setModal]      = useState(null);
   const [copied,     setCopied]     = useState(false);
-  const [isAdmin,    setIsAdmin]    = useState(false);
-  const [authLoaded, setAuthLoaded] = useState(false);
-  const [showLogin,  setShowLogin]  = useState(false);
+  const [currentUser, setCurrentUser] = useState(undefined);
+  const [isAdmin,     setIsAdmin]     = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -618,10 +648,10 @@ function App() {
   useEffect(() => {
     let attached = false;
     const unsubAuth = firebase.auth().onAuthStateChanged(user => {
-      if (!user) { firebase.auth().signInAnonymously(); return; }
+      setCurrentUser(user);
+      if (!user) return;
       const admin = user.uid === ADMIN_UID;
       setIsAdmin(admin);
-      setAuthLoaded(true);
       if (!admin || attached) return;
       attached = true;
       GASTOS_REF.on('value', snap => {
@@ -648,29 +678,27 @@ function App() {
     };
   }, []);
 
-  if (!authLoaded) return (
+  if (currentUser === undefined) return (
     <div className="loading-screen">
       <div className="loading-logo">J &amp; J</div>
       <div className="loading-spinner" />
-      <div className="loading-text">autenticando...</div>
     </div>
   );
 
+  if (currentUser === null) return <LoginGate />;
+
   if (!isAdmin) return (
-    <>
-      <div className="loading-screen" style={{gap:20}}>
-        <div className="loading-logo">J &amp; J</div>
-        <div style={{fontSize:32}}>🔒</div>
-        <div style={{fontSize:15,fontWeight:600,color:'var(--text)'}}>Acesso restrito</div>
-        <div style={{fontSize:13,color:'var(--text-muted)',textAlign:'center',maxWidth:280}}>
-          Esta página é exclusiva para administradores.
-        </div>
-        <button className="btn-save" style={{marginTop:8}} onClick={() => setShowLogin(true)}>
-          🔑 Entrar como admin
-        </button>
+    <div className="loading-screen" style={{gap:20}}>
+      <div className="loading-logo">J &amp; J</div>
+      <div style={{fontSize:32}}>🔒</div>
+      <div style={{fontSize:15,fontWeight:600,color:'var(--text)'}}>Acesso restrito</div>
+      <div style={{fontSize:13,color:'var(--text-muted)',textAlign:'center',maxWidth:280}}>
+        Esta página é exclusiva para administradores.
       </div>
-      {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
-    </>
+      <button className="btn-save" style={{marginTop:8}} onClick={() => firebase.auth().signOut()}>
+        🔑 Entrar como admin
+      </button>
+    </div>
   );
 
   if (!loadedG) return (
