@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
@@ -241,6 +242,8 @@ const FIREBASE_CONFIG = {
 };
 
 firebase.initializeApp(FIREBASE_CONFIG);
+// Autenticação anônima — garante que só o site acessa o banco (ver Security Rules)
+firebase.auth().signInAnonymously().catch(err => console.error('Erro de autenticação:', err));
 const GUESTS_REF = firebase.database().ref('convidados');
 const GROUPS_REF  = firebase.database().ref('grupos');
 
@@ -721,28 +724,33 @@ function App() {
   const [modal, setModal] = useState(null);
 
   useEffect(() => {
-    GUESTS_REF.on('value', snap => {
-      const data = snap.val();
-      if (data) {
-        setGuests(Object.values(data).map(g => ({ ...g, kids: g.kids || [] })).sort((a, b) => (a.id || 0) - (b.id || 0)));
-      } else {
-        const initial = buildInitial();
-        const obj = {};
-        initial.forEach(g => { obj[g.id] = g; });
-        GUESTS_REF.set(obj);
-      }
-      setLoaded(true);
+    // Aguarda autenticação anônima antes de abrir qualquer listener
+    const unsubAuth = firebase.auth().onAuthStateChanged(user => {
+      if (!user) return;
+      GUESTS_REF.on('value', snap => {
+        const data = snap.val();
+        if (data) {
+          setGuests(Object.values(data).map(g => ({ ...g, kids: g.kids || [] })).sort((a, b) => (a.id || 0) - (b.id || 0)));
+        } else {
+          const initial = buildInitial();
+          const obj = {};
+          initial.forEach(g => { obj[g.id] = g; });
+          GUESTS_REF.set(obj);
+        }
+        setLoaded(true);
+      });
+      GROUPS_REF.on('value', snap => {
+        const data = snap.val();
+        if (data) {
+          setGroups(data);
+        } else {
+          GROUPS_REF.set(SEED_GROUPS);
+        }
+      });
+      firebase.database().ref('.info/connected').on('value', snap => setOnline(!!snap.val()));
     });
-    GROUPS_REF.on('value', snap => {
-      const data = snap.val();
-      if (data) {
-        setGroups(data);
-      } else {
-        GROUPS_REF.set(SEED_GROUPS);
-      }
-    });
-    firebase.database().ref('.info/connected').on('value', snap => setOnline(!!snap.val()));
     return () => {
+      unsubAuth();
       GUESTS_REF.off();
       GROUPS_REF.off();
       firebase.database().ref('.info/connected').off();

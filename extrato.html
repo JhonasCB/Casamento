@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
@@ -179,6 +180,8 @@ const FIREBASE_CONFIG = {
   appId:             "1:35657642946:web:31f25ba40efaffbe9f1c5b"
 };
 firebase.initializeApp(FIREBASE_CONFIG);
+// Autenticação anônima — garante que só o site acessa o banco (ver Security Rules)
+firebase.auth().signInAnonymously().catch(err => console.error('Erro de autenticação:', err));
 const EXTRATO_REF = firebase.database().ref('extrato');
 
 // ── Constantes ─────────────────────────────────────────────────
@@ -269,13 +272,18 @@ function App() {
   }, [theme]);
 
   useEffect(() => {
-    EXTRATO_REF.on('value', snap => {
-      const data = snap.val();
-      setExtrato(data ? Object.values(data).filter(e => e && e.id) : []);
-      setLoaded(true);
+    // Aguarda autenticação anônima antes de abrir qualquer listener
+    const unsubAuth = firebase.auth().onAuthStateChanged(user => {
+      if (!user) return;
+      EXTRATO_REF.on('value', snap => {
+        const data = snap.val();
+        setExtrato(data ? Object.values(data).filter(e => e && e.id) : []);
+        setLoaded(true);
+      });
+      firebase.database().ref('.info/connected').on('value', snap => setOnline(!!snap.val()));
     });
-    firebase.database().ref('.info/connected').on('value', snap => setOnline(!!snap.val()));
     return () => {
+      unsubAuth();
       EXTRATO_REF.off();
       firebase.database().ref('.info/connected').off();
     };
