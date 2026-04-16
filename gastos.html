@@ -558,7 +558,7 @@ function DeleteModal({ gasto, onConfirm, onClose }) {
 }
 
 // ── GastoItem ──────────────────────────────────────────────────
-function GastoItem({ gasto, onEdit, onDelete, isAdmin }) {
+function GastoItem({ gasto, onEdit, onDelete }) {
   const [showObs, setShowObs] = useState(false);
   const today = todayDate();
   const in7   = new Date(today); in7.setDate(today.getDate() + 7);
@@ -578,9 +578,8 @@ function GastoItem({ gasto, onEdit, onDelete, isAdmin }) {
   return (
     <div className={`gasto-item${overdue ? ' overdue' : upcoming ? ' upcoming' : ''}`}>
       <div className="gasto-main">
-        <button className={`gasto-status-btn ${m.cls}`} onClick={isAdmin ? cycleStatus : undefined}
-          style={{cursor:isAdmin?'pointer':'default'}}
-          title={isAdmin ? "Clique para mudar status" : undefined}>
+        <button className={`gasto-status-btn ${m.cls}`} onClick={cycleStatus}
+          title="Clique para mudar status">
           {m.icon}{' '}
           <span>
             {m.label}
@@ -604,8 +603,8 @@ function GastoItem({ gasto, onEdit, onDelete, isAdmin }) {
             <button className="g-action-btn" onClick={() => setShowObs(v => !v)}
               title="Observação" style={showObs ? {color:'var(--accent)'} : {}}>💬</button>
           )}
-          {isAdmin && <button className="g-action-btn" onClick={onEdit} title="Editar">✏️</button>}
-          {isAdmin && <button className="g-action-btn del" onClick={onDelete} title="Remover">🗑️</button>}
+          <button className="g-action-btn" onClick={onEdit} title="Editar">✏️</button>
+          <button className="g-action-btn del" onClick={onDelete} title="Remover">🗑️</button>
         </div>
       </div>
 
@@ -617,7 +616,7 @@ function GastoItem({ gasto, onEdit, onDelete, isAdmin }) {
 }
 
 // ── FinanceSummary ─────────────────────────────────────────────
-function FinanceSummary({ gastos, meta, onMetaSave, isAdmin }) {
+function FinanceSummary({ gastos, meta, onMetaSave }) {
   const [editing,  setEditing]  = useState(false);
   const [localVal, setLocalVal] = useState('');
 
@@ -643,7 +642,7 @@ function FinanceSummary({ gastos, meta, onMetaSave, isAdmin }) {
           <div className="fin-card-label">Já pago</div>
           <div className="fin-card-val green">{fmt(totalPago)}</div>
         </div>
-        <div className="fin-card orc" onClick={isAdmin && !editing ? startEdit : undefined} title={isAdmin ? "Clique para definir o valor a pagar" : undefined}>
+        <div className="fin-card orc" onClick={!editing ? startEdit : undefined} title="Clique para definir o valor a pagar">
           <div className="fin-card-label">A pagar</div>
           {editing ? (
             <input className="fin-orc-edit" autoFocus
@@ -701,7 +700,7 @@ function App() {
       if (!user) return;
       const admin = user.uid === ADMIN_UID;
       setIsAdmin(admin);
-      if (attached) return;
+      if (!admin || attached) return;
       attached = true;
       GASTOS_REF.on('value', snap => {
         const data = snap.val();
@@ -735,6 +734,20 @@ function App() {
   );
 
   if (currentUser === null) return <LoginGate />;
+
+  if (!isAdmin) return (
+    <div className="loading-screen" style={{gap:20}}>
+      <div className="loading-logo">J &amp; J</div>
+      <div style={{fontSize:32}}>🔒</div>
+      <div style={{fontSize:15,fontWeight:600,color:'var(--text)'}}>Acesso restrito</div>
+      <div style={{fontSize:13,color:'var(--text-muted)',textAlign:'center',maxWidth:280}}>
+        Esta página é exclusiva para administradores.
+      </div>
+      <button className="btn-save" style={{marginTop:8}} onClick={() => firebase.auth().signOut()}>
+        🔑 Entrar como admin
+      </button>
+    </div>
+  );
 
   if (!loadedG) return (
     <div className="loading-screen">
@@ -850,7 +863,7 @@ function App() {
         style={{maxWidth:960, margin:'0 auto', paddingTop:20, paddingBottom:48}}>
 
         {/* Resumo financeiro */}
-        <FinanceSummary gastos={gastos} meta={meta} onMetaSave={v => META_REF.set(v)} isAdmin={isAdmin} />
+        <FinanceSummary gastos={gastos} meta={meta} onMetaSave={v => META_REF.set(v)} />
 
         {/* Alertas de vencimento */}
         {(overdueItems.length > 0 || upcomingItems.length > 0) && (
@@ -901,11 +914,9 @@ function App() {
             {copied ? '✓ Copiado!' : '📋 Copiar resumo'}
           </button>
 
-          {isAdmin && (
-            <button className="add-btn" onClick={() => setModal({ type: 'add' })}>
-              ＋ <span>Novo gasto</span>
-            </button>
-          )}
+          <button className="add-btn" onClick={() => setModal({ type: 'add' })}>
+            ＋ <span>Novo gasto</span>
+          </button>
         </div>
 
         {/* Lista agrupada por categoria */}
@@ -948,9 +959,9 @@ function App() {
                   </div>
                 </div>
                 {catFiltered.map(g => (
-                  <GastoItem key={g.id} gasto={g} isAdmin={isAdmin}
-                    onEdit={isAdmin ? () => setModal({ type: 'edit', gasto: g }) : undefined}
-                    onDelete={isAdmin ? () => setModal({ type: 'delete', gasto: g }) : undefined}
+                  <GastoItem key={g.id} gasto={g}
+                    onEdit={() => setModal({ type: 'edit', gasto: g })}
+                    onDelete={() => setModal({ type: 'delete', gasto: g })}
                   />
                 ))}
               </div>
