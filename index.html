@@ -812,9 +812,10 @@ function LoginGate() {
           <button style={btn} onClick={() => addDigit('0')}>0</button>
           <button style={{...btn,fontSize:18}} onClick={delDigit}>⌫</button>
         </div>
-        <button style={{background:'none',border:'none',cursor:'pointer',fontSize:11,color:'var(--text-muted)',
-          fontFamily:'inherit',padding:0,letterSpacing:1,textTransform:'uppercase',marginTop:4}}
-          onClick={() => setMode('admin')}>Administrador →</button>
+        <button style={{background:'none',border:'1px solid var(--border-modal)',cursor:'pointer',fontSize:12,
+          color:'var(--accent)',fontFamily:'inherit',padding:'8px 20px',letterSpacing:1,
+          textTransform:'uppercase',marginTop:4,borderRadius:8,opacity:.8}}
+          onClick={() => setMode('admin')}>🔑 Administrador</button>
       </div>
     </div>
   );
