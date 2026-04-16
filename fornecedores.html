@@ -557,6 +557,20 @@ function App() {
 
   if (currentUser === null) return <LoginGate />;
 
+  if (!isAdmin) return (
+    <div className="loading-screen" style={{gap:20}}>
+      <div className="loading-logo">J &amp; J</div>
+      <div style={{fontSize:32}}>🔒</div>
+      <div style={{fontSize:15,fontWeight:600,color:'var(--text)'}}>Acesso restrito</div>
+      <div style={{fontSize:13,color:'var(--text-muted)',textAlign:'center',maxWidth:280}}>
+        Esta página é exclusiva para administradores.
+      </div>
+      <button className="btn-save" style={{marginTop:8}} onClick={() => firebase.auth().signOut()}>
+        🔑 Entrar como admin
+      </button>
+    </div>
+  );
+
   if (!loaded) return (
     <div className="loading-screen">
       <div className="loading-logo">J &amp; J</div>
@@ -596,7 +610,7 @@ function App() {
 
       <nav className="jj-nav">
         <a href="./index.html"        className="jj-nav-link">👥 Convidados</a>
-        <a href="./fornecedores.html" className="jj-nav-link active">🏪 Fornecedores</a>
+        {isAdmin && <a href="./fornecedores.html" className="jj-nav-link active">🏪 Fornecedores</a>}
         {isAdmin && <a href="./gastos.html"  className="jj-nav-link">💰 Gastos</a>}
         {isAdmin && <a href="./extrato.html" className="jj-nav-link">💳 Extrato</a>}
         <button className="jj-nav-link" style={{marginLeft:'auto',border:'none',background:'none',cursor:'pointer'}}
