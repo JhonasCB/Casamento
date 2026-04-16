@@ -886,6 +886,16 @@ function App() {
     initial.forEach(g => { obj[g.id] = g; });
     GUESTS_REF.set(obj);
   };
+  const exportCSV = () => {
+    const rows = [['ID','Nome','Grupo','Status','Observação','Crianças']];
+    guests.forEach(g => rows.push([g.id, g.name, g.group, STATUS_META[g.status]?.label || g.status, g.note || '', (g.kids || []).join(' | ')]));
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
+    a.download = 'lista-convidados-JJ.csv';
+    a.click();
+  };
+
   const arr = sortDir === 1 ? ' ↑' : ' ↓';
 
   return (
@@ -967,6 +977,9 @@ function App() {
             <input className="search-input" placeholder="Buscar nome, nota ou criança..."
               value={search} onChange={e => setSearch(e.target.value)} />
           </div>
+          {isAdmin && (
+            <button className="export-btn" onClick={exportCSV}>⬇ CSV</button>
+          )}
           {isAdmin && (
             <button className="add-btn" onClick={() => setModal({ type:'add' })}>
               ＋ <span>Adicionar</span>
