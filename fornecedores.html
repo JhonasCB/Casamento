@@ -191,8 +191,7 @@ const FIREBASE_CONFIG = {
   appId:             "1:35657642946:web:31f25ba40efaffbe9f1c5b"
 };
 firebase.initializeApp(FIREBASE_CONFIG);
-// Autenticação anônima — garante que só o site acessa o banco (ver Security Rules)
-firebase.auth().signInAnonymously().catch(err => console.error('Erro de autenticação:', err));
+const ADMIN_UID = '0XrGEivRvCbZVEfO2tQmGD712dl1';
 const FORN_REF = firebase.database().ref('fornecedores');
 
 /*
@@ -251,7 +250,7 @@ const STATUS_CYCLE = ['nao_iniciado', 'em_andamento', 'contratado'];
 const STATUS_ICON  = { nao_iniciado: '⬜', em_andamento: '🔄', contratado: '✅' };
 
 // ── ItemRow ────────────────────────────────────────────────────
-function ItemRow({ item, onDeleteRequest }) {
+function ItemRow({ item, onDeleteRequest, isAdmin }) {
   const [editingName, setEditingName] = useState(false);
   const [localName,   setLocalName]   = useState(item.nome);
   const [showObs,     setShowObs]     = useState(!!item.observacao);
@@ -288,12 +287,14 @@ function ItemRow({ item, onDeleteRequest }) {
   return (
     <div className={`forn-item${item.status === 'contratado' ? ' contratado' : ''}`}>
       <div className="forn-item-main">
-        <button className="forn-status-btn" onClick={cycleStatus}
+        <button className="forn-status-btn"
+          onClick={isAdmin ? cycleStatus : undefined}
+          style={isAdmin ? {} : {cursor:'default',opacity:.7}}
           title={item.status === 'nao_iniciado' ? 'Não iniciado' : item.status === 'em_andamento' ? 'Em andamento' : 'Contratado'}>
           {STATUS_ICON[item.status] || '⬜'}
         </button>
 
-        {editingName ? (
+        {isAdmin && editingName ? (
           <input className="forn-name-input" value={localName}
             onChange={e => setLocalName(e.target.value)}
             onBlur={saveName}
@@ -303,7 +304,10 @@ function ItemRow({ item, onDeleteRequest }) {
             }}
             autoFocus />
         ) : (
-          <span className="forn-name" onClick={() => setEditingName(true)} title="Clique para editar">
+          <span className="forn-name"
+            onClick={isAdmin ? () => setEditingName(true) : undefined}
+            title={isAdmin ? 'Clique para editar' : ''}
+            style={isAdmin ? {} : {cursor:'default'}}>
             {item.nome}
           </span>
         )}
@@ -315,19 +319,23 @@ function ItemRow({ item, onDeleteRequest }) {
             title={showObs ? 'Esconder observação' : 'Mostrar observação'}>
             💬
           </button>
-          <button className="forn-action-btn del" onClick={onDeleteRequest} title="Remover item">
-            🗑️
-          </button>
+          {isAdmin && (
+            <button className="forn-action-btn del" onClick={onDeleteRequest} title="Remover item">
+              🗑️
+            </button>
+          )}
         </div>
       </div>
 
       {showObs && (
         <div className="forn-obs-wrap">
           <textarea className="forn-obs-textarea" value={localObs}
-            onChange={e => handleObs(e.target.value)}
+            onChange={isAdmin ? e => handleObs(e.target.value) : undefined}
+            readOnly={!isAdmin}
             onFocus={() => { focusRef.current = true; }}
             onBlur={()  => { focusRef.current = false; }}
-            placeholder="Fornecedor, valor, contato, data de pagamento..."
+            placeholder={isAdmin ? 'Fornecedor, valor, contato, data de pagamento...' : ''}
+            style={isAdmin ? {} : {cursor:'default',color:'var(--text-muted)'}}
             rows={2} />
         </div>
       )}
@@ -336,7 +344,7 @@ function ItemRow({ item, onDeleteRequest }) {
 }
 
 // ── CategoryCard ───────────────────────────────────────────────
-function CategoryCard({ cat, items, onDeleteRequest }) {
+function CategoryCard({ cat, items, onDeleteRequest, isAdmin }) {
   const [adding,   setAdding]   = useState(false);
   const [newName,  setNewName]  = useState('');
   const inputRef = useRef();
@@ -381,11 +389,11 @@ function CategoryCard({ cat, items, onDeleteRequest }) {
       )}
 
       {catItems.map(item => (
-        <ItemRow key={item.id} item={item}
+        <ItemRow key={item.id} item={item} isAdmin={isAdmin}
           onDeleteRequest={() => onDeleteRequest(item)} />
       ))}
 
-      {adding ? (
+      {isAdmin && (adding ? (
         <div className="forn-add-input-row">
           <input ref={inputRef} className="forn-add-name-input"
             placeholder="Nome do fornecedor ou serviço..."
@@ -397,7 +405,46 @@ function CategoryCard({ cat, items, onDeleteRequest }) {
         </div>
       ) : (
         <button className="forn-add-btn" onClick={() => setAdding(true)}>＋ Adicionar item</button>
-      )}
+      ))}
+    </div>
+  );
+}
+
+// ── LoginModal ────────────────────────────────────────────────
+function LoginModal({ onClose }) {
+  const [email, setEmail] = useState('');
+  const [pw, setPw]       = useState('');
+  const [err, setErr]     = useState('');
+  const [busy, setBusy]   = useState(false);
+  const submit = () => {
+    setBusy(true); setErr('');
+    firebase.auth().signInWithEmailAndPassword(email, pw)
+      .then(onClose)
+      .catch(() => { setErr('E-mail ou senha incorretos.'); setBusy(false); });
+  };
+  return (
+    <div className="jj-overlay" onClick={onClose}>
+      <div className="jj-modal" style={{maxWidth:340}} onClick={e => e.stopPropagation()}>
+        <div className="jj-modal-title">🔑 Acesso Admin</div>
+        <div className="jj-form-group">
+          <label className="jj-form-label">E-mail</label>
+          <input className="jj-form-input" type="email" autoFocus value={email}
+            onChange={e => setEmail(e.target.value)} />
+        </div>
+        <div className="jj-form-group">
+          <label className="jj-form-label">Senha</label>
+          <input className="jj-form-input" type="password" value={pw}
+            onChange={e => setPw(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && submit()} />
+        </div>
+        {err && <p style={{color:'#EF4444',fontSize:12,margin:'0 0 10px'}}>{err}</p>}
+        <div className="jj-modal-actions">
+          <button className="btn-cancel" onClick={onClose}>Cancelar</button>
+          <button className="btn-save" onClick={submit} disabled={busy}>
+            {busy ? 'Entrando...' : 'Entrar'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -420,11 +467,13 @@ function DeleteModal({ item, onConfirm, onClose }) {
 
 // ── App ────────────────────────────────────────────────────────
 function App() {
-  const [theme,   setTheme]   = useState(() => localStorage.getItem('jj-theme') || 'dark');
-  const [items,   setItems]   = useState([]);
-  const [loaded,  setLoaded]  = useState(false);
-  const [online,  setOnline]  = useState(false);
-  const [confirm, setConfirm] = useState(null); // item to delete
+  const [theme,     setTheme]     = useState(() => localStorage.getItem('jj-theme') || 'dark');
+  const [items,     setItems]     = useState([]);
+  const [loaded,    setLoaded]    = useState(false);
+  const [online,    setOnline]    = useState(false);
+  const [confirm,   setConfirm]   = useState(null); // item to delete
+  const [isAdmin,   setIsAdmin]   = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -432,24 +481,27 @@ function App() {
   }, [theme]);
 
   useEffect(() => {
-    // Aguarda autenticação anônima antes de abrir qualquer listener
+    let attached = false;
     const unsubAuth = firebase.auth().onAuthStateChanged(user => {
-      if (!user) return;
+      if (!user) { firebase.auth().signInAnonymously(); return; }
+      setIsAdmin(user.uid === ADMIN_UID);
+      if (attached) return;
+      attached = true;
       FORN_REF.on('value', snap => {
-      const data = snap.val();
-      if (data) {
-        setItems(Object.values(data).filter(i => i && i.nome));
-      } else {
-        // Primeira vez: popula com lista inicial
-        const obj = {};
-        const base = Date.now();
-        SEED.forEach((s, i) => {
-          const id = String(base + i * 10);
-          obj[id] = { id, ...s, status: 'nao_iniciado', observacao: '', criadoEm: base };
-        });
-        FORN_REF.set(obj);
-      }
-      setLoaded(true);
+        const data = snap.val();
+        if (data) {
+          setItems(Object.values(data).filter(i => i && i.nome));
+        } else {
+          // Primeira vez: popula com lista inicial
+          const obj = {};
+          const base = Date.now();
+          SEED.forEach((s, i) => {
+            const id = String(base + i * 10);
+            obj[id] = { id, ...s, status: 'nao_iniciado', observacao: '', criadoEm: base };
+          });
+          FORN_REF.set(obj);
+        }
+        setLoaded(true);
       });
       firebase.database().ref('.info/connected').on('value', snap => setOnline(!!snap.val()));
     });
@@ -500,8 +552,12 @@ function App() {
       <nav className="jj-nav">
         <a href="./index.html"        className="jj-nav-link">👥 Convidados</a>
         <a href="./fornecedores.html" className="jj-nav-link active">🏪 Fornecedores</a>
-        <a href="./gastos.html"       className="jj-nav-link">💰 Gastos</a>
-        <a href="./extrato.html"      className="jj-nav-link">💳 Extrato</a>
+        {isAdmin && <a href="./gastos.html"  className="jj-nav-link">💰 Gastos</a>}
+        {isAdmin && <a href="./extrato.html" className="jj-nav-link">💳 Extrato</a>}
+        <button className="jj-nav-link" style={{marginLeft:'auto',border:'none',background:'none',cursor:'pointer'}}
+          onClick={() => isAdmin ? firebase.auth().signOut() : setShowLogin(true)}>
+          {isAdmin ? '🔓 Sair' : '🔑 Admin'}
+        </button>
       </nav>
 
       <div className="container-fluid px-3 px-md-4"
@@ -527,18 +583,19 @@ function App() {
         <div className="row g-3">
           {CATEGORIAS.map(cat => (
             <div key={cat.id} className="col-12 col-md-6">
-              <CategoryCard cat={cat} items={items}
+              <CategoryCard cat={cat} items={items} isAdmin={isAdmin}
                 onDeleteRequest={item => setConfirm(item)} />
             </div>
           ))}
         </div>
       </div>
 
-      {confirm && (
+      {isAdmin && confirm && (
         <DeleteModal item={confirm}
           onConfirm={handleDelete}
           onClose={() => setConfirm(null)} />
       )}
+      {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
     </>
   );
 }
