@@ -196,7 +196,7 @@ const FIREBASE_CONFIG = {
   appId:             "1:35657642946:web:31f25ba40efaffbe9f1c5b"
 };
 firebase.initializeApp(FIREBASE_CONFIG);
-const ADMIN_UID   = '0XrGEivRvCbZVEfO2tQmGD712dl1';
+const ADMIN_UIDS = ['0XrGEivRvCbZVEfO2tQmGD712dl1','jK1hJfvkRLUUjl9uGNhEHRY3Xlu1'];
 const EXTRATO_REF = firebase.database().ref('extrato');
 
 // ── Constantes ─────────────────────────────────────────────────
@@ -410,7 +410,7 @@ function App() {
       }
       setCurrentUser(user);
       if (!user) return;
-      const admin = user.uid === ADMIN_UID;
+      const admin = ADMIN_UIDS.includes(user.uid);
       setIsAdmin(admin);
       if (!admin || attached) return;
       attached = true;

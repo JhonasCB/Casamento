@@ -244,7 +244,7 @@ const FIREBASE_CONFIG = {
 };
 
 firebase.initializeApp(FIREBASE_CONFIG);
-const ADMIN_UID  = '0XrGEivRvCbZVEfO2tQmGD712dl1';
+const ADMIN_UIDS = ['0XrGEivRvCbZVEfO2tQmGD712dl1','jK1hJfvkRLUUjl9uGNhEHRY3Xlu1'];
 const GUESTS_REF = firebase.database().ref('convidados');
 const GROUPS_REF  = firebase.database().ref('grupos');
 
@@ -851,7 +851,7 @@ function App() {
       }
       setCurrentUser(user);
       if (!user) return;
-      setIsAdmin(user.uid === ADMIN_UID);
+      setIsAdmin(ADMIN_UIDS.includes(user.uid));
       if (attached) return;
       attached = true;
       GUESTS_REF.on('value', snap => {

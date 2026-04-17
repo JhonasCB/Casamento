@@ -197,7 +197,7 @@ const FIREBASE_CONFIG = {
   appId:             "1:35657642946:web:31f25ba40efaffbe9f1c5b"
 };
 firebase.initializeApp(FIREBASE_CONFIG);
-const ADMIN_UID = '0XrGEivRvCbZVEfO2tQmGD712dl1';
+const ADMIN_UIDS = ['0XrGEivRvCbZVEfO2tQmGD712dl1','jK1hJfvkRLUUjl9uGNhEHRY3Xlu1'];
 const FORN_REF = firebase.database().ref('fornecedores');
 
 // ── Constantes ─────────────────────────────────────────────────
@@ -559,7 +559,7 @@ function App() {
       }
       setCurrentUser(user);
       if (!user) return;
-      setIsAdmin(user.uid === ADMIN_UID);
+      setIsAdmin(ADMIN_UIDS.includes(user.uid));
       if (attached) return;
       attached = true;
       FORN_REF.on('value', snap => {
