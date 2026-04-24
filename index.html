@@ -8,7 +8,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script src="./pin-guard.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
@@ -102,7 +101,7 @@
     .jj-header-subtitle{font-size:10px;letter-spacing:3px;color:var(--text-hsub);text-transform:uppercase;margin-bottom:24px}
     .conn-badge{position:absolute;top:14px;right:14px;z-index:2;display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.25)}
     .conn-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-    @keyframes jj-shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+    20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
     .conn-badge.online .conn-dot{background:#4ADE80;box-shadow:0 0 6px rgba(74,222,128,0.5)}
     .conn-badge.online{color:rgba(74,222,128,0.9)}
     .conn-badge.offline .conn-dot{background:#9CA3AF}
@@ -709,113 +708,41 @@ function GroupsModal({ groups, guests, onClose }) {
 
 // ── LoginGate ─────────────────────────────────────────────────
 function LoginGate() {
-  const [mode,   setMode]   = useState('pin');
-  const [digits, setDigits] = useState([]);
-  const [shake,  setShake]  = useState(false);
-  const [email,  setEmail]  = useState('');
-  const [pw,     setPw]     = useState('');
-  const [err,    setErr]    = useState('');
-  const [busy,   setBusy]   = useState(false);
+  const [email, setEmail] = useState("");
+  const [pw,    setPw]    = useState("");
+  const [err,   setErr]   = useState("");
+  const [busy,  setBusy]  = useState(false);
 
-  const addDigit = d => setDigits(prev => prev.length >= 4 ? prev : [...prev, d]);
-  const delDigit = () => setDigits(prev => prev.slice(0, -1));
-
-  useEffect(() => {
-    if (digits.length !== 4) return;
-    const t = setTimeout(() => {
-      if (window.JJGuard.validate(digits.join(''))) {
-        window.JJGuard.grant();
-        firebase.auth().signInAnonymously();
-      } else {
-        setShake(true);
-        setTimeout(() => { setShake(false); setDigits([]); }, 600);
-      }
-    }, 120);
-    return () => clearTimeout(t);
-  }, [digits]);
-
-  useEffect(() => {
-    if (mode !== 'pin') return;
-    const h = e => {
-      if (e.key >= '0' && e.key <= '9') addDigit(e.key);
-      if (e.key === 'Backspace') delDigit();
-    };
-    window.addEventListener('keydown', h);
-    return () => window.removeEventListener('keydown', h);
-  }, [mode]);
-
-  const loginAdmin = () => {
-    setBusy(true); setErr('');
+  const login = () => {
+    setBusy(true); setErr("");
     firebase.auth().signInWithEmailAndPassword(email, pw)
-      .catch(() => { setErr('E-mail ou senha incorretos.'); setBusy(false); });
+      .catch(() => { setErr("E-mail ou senha incorretos."); setBusy(false); });
   };
 
-  const hdr = (
-    <div style={{textAlign:'center'}}>
-      <div style={{fontSize:13,letterSpacing:8,color:'var(--accent)',opacity:.8,marginBottom:12}}>✦ ✦ ✦</div>
-      <div style={{fontSize:'clamp(40px,10vw,64px)',fontWeight:200,letterSpacing:'clamp(8px,2vw,16px)',color:'var(--text-header)',fontStyle:'italic'}}>J &amp; J</div>
-      <div style={{display:'flex',alignItems:'center',gap:16,justifyContent:'center',margin:'10px 0'}}>
-        <div style={{flex:1,maxWidth:80,height:1,background:'linear-gradient(90deg,transparent,rgba(201,168,76,.6))'}} />
-        <span style={{color:'var(--accent)',fontSize:10}}>◆</span>
-        <div style={{flex:1,maxWidth:80,height:1,background:'linear-gradient(90deg,rgba(201,168,76,.6),transparent)'}} />
+  return (
+    <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"var(--bg)",padding:"24px",gap:28}}>
+      <div style={{textAlign:"center"}}>
+        <div style={{fontSize:13,letterSpacing:8,color:"var(--accent)",opacity:.8,marginBottom:12}}>✦ ✦ ✦</div>
+        <div style={{fontSize:"clamp(40px,10vw,64px)",fontWeight:200,letterSpacing:"clamp(8px,2vw,16px)",color:"var(--text-header)",fontStyle:"italic"}}>J &amp; J</div>
+        <div style={{display:"flex",alignItems:"center",gap:16,justifyContent:"center",margin:"10px 0"}}>
+          <div style={{flex:1,maxWidth:80,height:1,background:"linear-gradient(90deg,transparent,rgba(201,168,76,.6))"}} />
+          <span style={{color:"var(--accent)",fontSize:10}}>◆</span>
+          <div style={{flex:1,maxWidth:80,height:1,background:"linear-gradient(90deg,rgba(201,168,76,.6),transparent)"}} />
+        </div>
+        <div style={{fontSize:11,letterSpacing:3,color:"var(--text-muted)",textTransform:"uppercase"}}>20 de Novembro de 2027</div>
       </div>
-      <div style={{fontSize:11,letterSpacing:3,color:'var(--text-muted)',textTransform:'uppercase'}}>20 de Novembro de 2027</div>
-    </div>
-  );
-
-  if (mode === 'admin') return (
-    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'var(--bg)',padding:'24px',gap:28}}>
-      {hdr}
-      <div style={{background:'var(--bg-card)',border:'1px solid var(--border-modal)',borderRadius:16,padding:'28px 24px',width:'100%',maxWidth:320,boxShadow:'var(--modal-shadow)'}}>
+      <div style={{background:"var(--bg-card)",border:"1px solid var(--border-modal)",borderRadius:16,padding:"28px 24px",width:"100%",maxWidth:320,boxShadow:"var(--modal-shadow)"}}>
         <div style={{marginBottom:10}}>
-          <label style={{display:'block',fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1.5,color:'var(--text-label)',marginBottom:5}}>E-mail</label>
-          <input className="jj-form-input" type="email" autoFocus value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && loginAdmin()} />
+          <label style={{display:"block",fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1.5,color:"var(--text-label)",marginBottom:5}}>E-mail</label>
+          <input className="jj-form-input" type="email" autoFocus value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && login()} />
         </div>
         <div style={{marginBottom:16}}>
-          <label style={{display:'block',fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1.5,color:'var(--text-label)',marginBottom:5}}>Senha</label>
-          <input className="jj-form-input" type="password" value={pw} onChange={e => setPw(e.target.value)} onKeyDown={e => e.key === 'Enter' && loginAdmin()} />
+          <label style={{display:"block",fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1.5,color:"var(--text-label)",marginBottom:5}}>Senha</label>
+          <input className="jj-form-input" type="password" value={pw} onChange={e => setPw(e.target.value)} onKeyDown={e => e.key === "Enter" && login()} />
         </div>
-        {err && <p style={{color:'#EF4444',fontSize:12,margin:'0 0 12px'}}>{err}</p>}
-        <button style={{width:'100%',padding:'12px',background:'var(--accent)',color:'var(--accent-text)',border:'none',borderRadius:8,cursor:'pointer',fontSize:14,fontWeight:700,marginBottom:12,fontFamily:'inherit'}}
-          onClick={loginAdmin} disabled={busy}>{busy ? 'Entrando...' : 'Entrar'}</button>
-        <div style={{textAlign:'center'}}>
-          <button style={{background:'none',border:'none',cursor:'pointer',fontSize:12,color:'var(--text-muted)',fontFamily:'inherit',padding:0}}
-            onClick={() => { setMode('pin'); setErr(''); setPw(''); setEmail(''); }}>← Voltar</button>
-        </div>
-      </div>
-    </div>
-  );
-
-  const btn = {width:64,height:64,borderRadius:'50%',border:'1px solid var(--border)',background:'var(--bg-card)',
-    color:'var(--text)',fontSize:22,fontWeight:300,cursor:'pointer',fontFamily:'inherit',
-    display:'flex',alignItems:'center',justifyContent:'center',transition:'background .1s'};
-
-  return (
-    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'var(--bg)',padding:'24px',gap:32}}>
-      {hdr}
-      <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:24}}>
-        <div style={{fontSize:11,letterSpacing:3,color:'var(--text-muted)',textTransform:'uppercase'}}>Código de acesso</div>
-        <div style={{display:'flex',gap:16,animation:shake?'jj-shake .5s':'none'}}>
-          {[0,1,2,3].map(i => (
-            <div key={i} style={{width:14,height:14,borderRadius:'50%',
-              background:digits.length>i?'var(--accent)':'transparent',
-              border:`2px solid ${digits.length>i?'var(--accent)':'rgba(201,168,76,.3)'}`,
-              transition:'all .15s'}} />
-          ))}
-        </div>
-        {shake && <div style={{fontSize:12,color:'#EF4444',letterSpacing:.5,marginTop:-8}}>Código incorreto</div>}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(3,64px)',gap:14}}>
-          {[1,2,3,4,5,6,7,8,9].map(n => (
-            <button key={n} style={btn} onClick={() => addDigit(String(n))}>{n}</button>
-          ))}
-          <div />
-          <button style={btn} onClick={() => addDigit('0')}>0</button>
-          <button style={{...btn,fontSize:18}} onClick={delDigit}>⌫</button>
-        </div>
-        <button style={{background:'none',border:'1px solid var(--border-modal)',cursor:'pointer',fontSize:12,
-          color:'var(--accent)',fontFamily:'inherit',padding:'8px 20px',letterSpacing:1,
-          textTransform:'uppercase',marginTop:4,borderRadius:8,opacity:.8}}
-          onClick={() => setMode('admin')}>🔑 Noivos</button>
+        {err && <p style={{color:"#EF4444",fontSize:12,margin:"0 0 12px"}}>{err}</p>}
+        <button style={{width:"100%",padding:"12px",background:"var(--accent)",color:"var(--accent-text)",border:"none",borderRadius:8,cursor:"pointer",fontSize:14,fontWeight:700,fontFamily:"inherit"}}
+          onClick={login} disabled={busy}>{busy ? "Entrando..." : "Entrar"}</button>
       </div>
     </div>
   );
@@ -846,9 +773,6 @@ function App() {
   useEffect(() => {
     let attached = false;
     const unsubAuth = firebase.auth().onAuthStateChanged(user => {
-      if (user && user.isAnonymous && !window.JJGuard.isGranted()) {
-        firebase.auth().signOut(); return;
-      }
       setCurrentUser(user);
       if (!user) return;
       setIsAdmin(ADMIN_UIDS.includes(user.uid));
