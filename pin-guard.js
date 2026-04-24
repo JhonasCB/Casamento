@@ -10,10 +10,10 @@
       } catch (e) { return false; }
     },
     isGranted: function () {
-      return sessionStorage.getItem('jj-gk') === '1';
+      return localStorage.getItem('jj-gk') === '1';
     },
     grant: function () {
-      sessionStorage.setItem('jj-gk', '1');
+      localStorage.setItem('jj-gk', '1');
     }
   };
 })();
