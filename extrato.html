@@ -308,6 +308,7 @@ function LoginGate() {
   const loginAdmin = () => {
     setBusy(true); setErr('');
     firebase.auth().signInWithEmailAndPassword(email, pw)
+      .then(() => sessionStorage.setItem('jj_auth', '1'))
       .catch(() => { setErr('E-mail ou senha incorretos.'); setBusy(false); });
   };
 
@@ -541,7 +542,7 @@ function App() {
       <div style={{fontSize:13,color:'var(--text-muted)',textAlign:'center',maxWidth:280}}>
         Esta página é exclusiva para administradores.
       </div>
-      <button className="btn-save" style={{marginTop:8}} onClick={() => firebase.auth().signOut()}>
+      <button className="btn-save" style={{marginTop:8}} onClick={() => { sessionStorage.removeItem('jj_auth'); firebase.auth().signOut(); }}>
         🔑 Entrar como admin
       </button>
     </div>
@@ -582,7 +583,7 @@ function App() {
         <a href="./gastos.html"       className="jj-nav-link">💰 Gastos</a>
         <a href="./extrato.html"      className="jj-nav-link active">💳 Extrato</a>
         <button className="jj-nav-link" style={{marginLeft:'auto',border:'none',background:'none',cursor:'pointer'}}
-          onClick={() => firebase.auth().signOut()}>
+          onClick={() => { sessionStorage.removeItem('jj_auth'); firebase.auth().signOut(); }}>
           🔓 Sair
         </button>
       </nav>
