@@ -406,11 +406,12 @@ function App() {
   useEffect(() => {
     let attached = false;
     const unsubAuth = firebase.auth().onAuthStateChanged(user => {
-      if (user && user.isAnonymous && !window.JJGuard.isGranted()) {
-        firebase.auth().signOut(); return;
+      if (!user) { setCurrentUser(null); return; }
+      if (!sessionStorage.getItem('jj_auth')) { setCurrentUser(null); firebase.auth().signOut(); return; }
+      if (user.isAnonymous && !window.JJGuard.isGranted()) {
+        setCurrentUser(null); firebase.auth().signOut(); return;
       }
       setCurrentUser(user);
-      if (!user) return;
       const admin = ADMIN_UIDS.includes(user.uid);
       setIsAdmin(admin);
       if (!admin || attached) return;
