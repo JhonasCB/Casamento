@@ -784,9 +784,9 @@ function App() {
   useEffect(() => {
     let attached = false;
     const unsubAuth = firebase.auth().onAuthStateChanged(user => {
-      setCurrentUser(user);
-      if (!user) return;
+      if (!user) { setCurrentUser(null); return; }
       if (!sessionStorage.getItem('jj_auth')) { firebase.auth().signOut(); return; }
+      setCurrentUser(user);
       setIsAdmin(user.uid === ADMIN_UID);
       if (attached) return;
       attached = true;
