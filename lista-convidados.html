@@ -715,6 +715,7 @@ function LoginGate() {
   const loginAdmin = () => {
     setBusy(true); setErr('');
     firebase.auth().signInWithEmailAndPassword(email, pw)
+      .then(() => sessionStorage.setItem('jj_auth', '1'))
       .catch(() => { setErr('E-mail ou senha incorretos.'); setBusy(false); });
   };
 
@@ -749,7 +750,7 @@ function LoginGate() {
         </button>
         <div style={{textAlign:'center'}}>
           <button style={{background:'none',border:'none',cursor:'pointer',fontSize:12,color:'var(--text-muted)',fontFamily:'inherit',padding:0}}
-            onClick={() => firebase.auth().signInAnonymously()}>
+            onClick={() => firebase.auth().signInAnonymously().then(() => sessionStorage.setItem('jj_auth', '1'))}>
             Continuar como convidado →
           </button>
         </div>
@@ -785,6 +786,7 @@ function App() {
     const unsubAuth = firebase.auth().onAuthStateChanged(user => {
       setCurrentUser(user);
       if (!user) return;
+      if (!sessionStorage.getItem('jj_auth')) { firebase.auth().signOut(); return; }
       setIsAdmin(user.uid === ADMIN_UID);
       if (attached) return;
       attached = true;
@@ -936,7 +938,7 @@ function App() {
         {isAdmin && <a href="./gastos.html"  className="jj-nav-link">💰 Gastos</a>}
         {isAdmin && <a href="./extrato.html" className="jj-nav-link">💳 Extrato</a>}
         <button className="jj-nav-link" style={{marginLeft:'auto',border:'none',background:'none',cursor:'pointer'}}
-          onClick={() => firebase.auth().signOut()}>
+          onClick={() => { sessionStorage.removeItem('jj_auth'); firebase.auth().signOut(); }}>
           {isAdmin ? '🔓 Sair' : '🔑 Admin'}
         </button>
       </nav>
