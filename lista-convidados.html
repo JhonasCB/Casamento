@@ -242,7 +242,7 @@ const FIREBASE_CONFIG = {
 };
 
 firebase.initializeApp(FIREBASE_CONFIG);
-const ADMIN_UID  = '0XrGEivRvCbZVEfO2tQmGD712dl1';
+const ADMIN_UIDS = ['0XrGEivRvCbZVEfO2tQmGD712dl1','jK1hJfvkRLUUjl9uGNhEHRY3Xlu1'];
 const GUESTS_REF = firebase.database().ref('convidados');
 const GROUPS_REF  = firebase.database().ref('grupos');
 
@@ -787,7 +787,7 @@ function App() {
       if (!user) { setCurrentUser(null); return; }
       if (!sessionStorage.getItem('jj_auth')) { setCurrentUser(null); firebase.auth().signOut(); return; }
       setCurrentUser(user);
-      setIsAdmin(user.uid === ADMIN_UID);
+      setIsAdmin(ADMIN_UIDS.includes(user.uid));
       if (attached) return;
       attached = true;
       GUESTS_REF.on('value', snap => {
@@ -796,7 +796,7 @@ function App() {
           setGuests(Object.values(data).map(g => ({ ...g, kids: g.kids || [] })).sort((a, b) => (a.id || 0) - (b.id || 0)));
         } else {
           // Apenas o admin deve tentar inicializar o banco
-          if (user.uid === ADMIN_UID) {
+          if (ADMIN_UIDS.includes(user.uid)) {
             const initial = buildInitial();
             const obj = {};
             initial.forEach(g => { obj[g.id] = g; });
@@ -814,7 +814,7 @@ function App() {
         if (data) {
           setGroups(data);
         } else {
-          if (user.uid === ADMIN_UID) {
+          if (ADMIN_UIDS.includes(user.uid)) {
             GROUPS_REF.set(SEED_GROUPS).catch(console.error);
           }
         }
