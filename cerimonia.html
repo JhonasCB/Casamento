@@ -130,6 +130,13 @@
     .cer-add-btn{display:block;width:100%;padding:9px 16px;background:none;border:none;border-top:1px solid var(--border);cursor:pointer;font-size:12px;font-weight:600;color:var(--text-muted);text-align:left;transition:all .15s}
     .cer-add-btn:hover{color:var(--accent);background:color-mix(in srgb, var(--accent) 5%, transparent)}
     .cer-add-row{display:flex;gap:8px;padding:8px 16px;border-top:1px solid var(--border);align-items:center}
+    .cer-drag-handle{cursor:grab;color:var(--text-muted);font-size:16px;padding:0 4px;flex-shrink:0;user-select:none;opacity:.35;line-height:1}
+    .cer-drag-handle:hover{opacity:1}
+    .cer-list-item.drag-over{background:color-mix(in srgb,var(--accent) 10%,transparent);border-top:2px solid var(--accent)}
+    .cer-funcao-label-edit{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-label);min-width:190px;flex-shrink:0;cursor:pointer;border-radius:4px;padding:2px 5px;margin:-2px -5px;transition:background .1s}
+    .cer-funcao-label-edit:hover{background:rgba(201,168,76,0.08);text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:3px}
+    .cer-funcao-label-edit.readonly{cursor:default}
+    .cer-funcao-label-edit.readonly:hover{background:none;text-decoration:none}
 
     /* Inputs */
     .cer-inline-input{flex:1;border:1px solid var(--accent);border-radius:6px;padding:4px 8px;font-size:14px;outline:none;background:var(--bg-input);color:var(--text);font-family:inherit;min-width:0}
@@ -217,6 +224,12 @@ const SEED = {
     plaquinhaJesus: 'Mari',
     aliancas:       'Lebron',
   },
+  novinhas_labels: {
+    mademoiselle:   'Mademoiselle',
+    florista:       'Plaquinha (florista)',
+    plaquinhaJesus: 'Plaquinha de Jesus',
+    aliancas:       'Alianças',
+  },
 };
 
 // ── InlineText ─────────────────────────────────────────────────
@@ -264,9 +277,11 @@ function FuncoesCard({ funcoes, isAdmin }) {
 }
 
 // ── ListCard ───────────────────────────────────────────────────
-function ListCard({ icon, title, items, fbPath, numbered, isAdmin, onDeleteRequest }) {
+function ListCard({ icon, title, items, fbPath, numbered, isAdmin, onDeleteRequest, draggable: isDraggable }) {
   const [adding, setAdding] = useState(false);
   const [newNome, setNewNome] = useState('');
+  const [dragId, setDragId] = useState(null);
+  const [dragOverId, setDragOverId] = useState(null);
   const sorted = Object.entries(items || {})
     .map(([id, v]) => ({ id, ...v }))
     .sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
@@ -280,6 +295,21 @@ function ListCard({ icon, title, items, fbPath, numbered, isAdmin, onDeleteReque
     setNewNome(''); setAdding(false);
   };
 
+  const handleDrop = (targetId) => {
+    if (!dragId || dragId === targetId) { setDragId(null); setDragOverId(null); return; }
+    const ids = sorted.map(i => i.id);
+    const from = ids.indexOf(dragId);
+    const to   = ids.indexOf(targetId);
+    if (from === -1 || to === -1) { setDragId(null); setDragOverId(null); return; }
+    const reordered = [...ids];
+    reordered.splice(from, 1);
+    reordered.splice(to, 0, dragId);
+    const updates = {};
+    reordered.forEach((id, idx) => { updates[id + '/ordem'] = idx; });
+    CER_REF.child(fbPath).update(updates);
+    setDragId(null); setDragOverId(null);
+  };
+
   return (
     <div className="cer-card">
       <div className="cer-card-header">
@@ -288,7 +318,16 @@ function ListCard({ icon, title, items, fbPath, numbered, isAdmin, onDeleteReque
         <span className="cer-card-count">{sorted.length}</span>
       </div>
       {sorted.map((item, idx) => (
-        <div key={item.id} className="cer-list-item">
+        <div key={item.id}
+          className={'cer-list-item' + (isDraggable && isAdmin && dragOverId === item.id ? ' drag-over' : '')}
+          draggable={!!(isDraggable && isAdmin)}
+          onDragStart={isDraggable && isAdmin ? () => setDragId(item.id) : undefined}
+          onDragOver={isDraggable && isAdmin ? e => { e.preventDefault(); setDragOverId(item.id); } : undefined}
+          onDragLeave={isDraggable && isAdmin ? () => setDragOverId(null) : undefined}
+          onDrop={isDraggable && isAdmin ? () => handleDrop(item.id) : undefined}
+          onDragEnd={isDraggable && isAdmin ? () => { setDragId(null); setDragOverId(null); } : undefined}
+        >
+          {isDraggable && isAdmin && <span className="cer-drag-handle">⠿</span>}
           {numbered
             ? <span className="cer-list-num">{idx + 1}.</span>
             : <span className="cer-list-bullet" />}
@@ -319,16 +358,22 @@ function ListCard({ icon, title, items, fbPath, numbered, isAdmin, onDeleteReque
 }
 
 // ── NovinhosCard ───────────────────────────────────────────────
-function NovinhosCard({ novinhas, isAdmin }) {
+function NovinhosCard({ novinhas, novinhosLabels, isAdmin }) {
   return (
     <div className="cer-card">
       <div className="cer-card-header">
         <span className="cer-card-icon">💐</span>
-        <span className="cer-card-title">Novinhas / Noivinhos</span>
+        <span className="cer-card-title">Noivinhas e Noivinhos</span>
       </div>
       {NOVINHAS_DEF.map(f => (
         <div key={f.key} className="cer-funcao-row">
-          <span className="cer-funcao-label">{f.label}</span>
+          <span style={{minWidth:190,flexShrink:0}}>
+            <InlineText
+              value={(novinhosLabels && novinhosLabels[f.key]) || f.label}
+              isAdmin={isAdmin}
+              className="cer-funcao-label-edit"
+              onSave={v => CER_REF.child('novinhas_labels').child(f.key).set(v)} />
+          </span>
           <InlineText
             value={(novinhas && novinhas[f.key]) || '—'}
             isAdmin={isAdmin}
@@ -454,11 +499,13 @@ function App() {
           items={data?.padrinhos || {}}
           fbPath="padrinhos"
           numbered={true}
+          draggable={true}
           isAdmin={isAdmin}
           onDeleteRequest={(fbPath, item) => setConfirm({ fbPath, item })} />
 
         <NovinhosCard
           novinhas={data?.novinhas || {}}
+          novinhosLabels={data?.novinhas_labels || {}}
           isAdmin={isAdmin} />
       </div>
 
