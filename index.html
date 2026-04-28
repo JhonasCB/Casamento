@@ -241,8 +241,8 @@
   <div class="loading-logo">J &amp; J</div>
   <div style="font-size:11px;letter-spacing:3px;color:var(--text-muted);text-transform:uppercase">Digite o PIN</div>
   <div class="pin-dots" id="pin-dots">
-    <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
-    <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+    <div class="pin-dot"></div><div class="pin-dot"></div>
+    <div class="pin-dot"></div><div class="pin-dot"></div>
   </div>
   <div class="pin-error" id="pin-error"></div>
   <div class="pin-pad">
@@ -262,7 +262,7 @@
 </div>
 <script>
   (function(){
-    var PIN='140818', entered='';
+    var PIN='1408', entered='';
     if(localStorage.getItem('jj_unlocked')==='1'){
       document.getElementById('pin-gate').style.display='none';
       return;
@@ -273,10 +273,10 @@
       });
     }
     window.pinKey=function(k){
-      if(entered.length>=6) return;
+      if(entered.length>=4) return;
       document.getElementById('pin-error').textContent='';
       entered+=k; update();
-      if(entered.length===6){
+      if(entered.length===4){
         if(entered===PIN){
           localStorage.setItem('jj_unlocked','1');
           document.getElementById('pin-gate').style.display='none';
