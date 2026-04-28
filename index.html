@@ -224,9 +224,77 @@
       .add-btn span{display:none}
       tbody td{padding:8px}
     }
+
+    #pin-gate{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+    .pin-dots{display:flex;gap:14px;margin:4px 0}
+    .pin-dot{width:13px;height:13px;border-radius:50%;border:2px solid var(--accent);background:transparent;transition:background .15s}
+    .pin-dot.filled{background:var(--accent)}
+    .pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .pin-btn{width:68px;height:68px;border-radius:50%;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:22px;font-weight:300;cursor:pointer;transition:background .1s;font-family:inherit}
+    .pin-btn:hover{background:var(--bg-row-hover)}
+    .pin-btn:active{background:color-mix(in srgb,var(--accent) 15%,transparent)}
+    .pin-error{color:#DC2626;font-size:13px;height:18px;text-align:center;letter-spacing:1px}
   </style>
 </head>
 <body>
+<div id="pin-gate">
+  <div class="loading-logo">J &amp; J</div>
+  <div style="font-size:11px;letter-spacing:3px;color:var(--text-muted);text-transform:uppercase">Digite o PIN</div>
+  <div class="pin-dots" id="pin-dots">
+    <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+    <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+  </div>
+  <div class="pin-error" id="pin-error"></div>
+  <div class="pin-pad">
+    <button class="pin-btn" onclick="pinKey('1')">1</button>
+    <button class="pin-btn" onclick="pinKey('2')">2</button>
+    <button class="pin-btn" onclick="pinKey('3')">3</button>
+    <button class="pin-btn" onclick="pinKey('4')">4</button>
+    <button class="pin-btn" onclick="pinKey('5')">5</button>
+    <button class="pin-btn" onclick="pinKey('6')">6</button>
+    <button class="pin-btn" onclick="pinKey('7')">7</button>
+    <button class="pin-btn" onclick="pinKey('8')">8</button>
+    <button class="pin-btn" onclick="pinKey('9')">9</button>
+    <button class="pin-btn" onclick="pinDel()" style="font-size:16px">&#9003;</button>
+    <button class="pin-btn" onclick="pinKey('0')">0</button>
+    <button class="pin-btn" style="opacity:0;pointer-events:none"></button>
+  </div>
+</div>
+<script>
+  (function(){
+    var PIN='140818', entered='';
+    if(localStorage.getItem('jj_unlocked')==='1'){
+      document.getElementById('pin-gate').style.display='none';
+      return;
+    }
+    function update(){
+      document.querySelectorAll('.pin-dot').forEach(function(d,i){
+        d.classList.toggle('filled', i < entered.length);
+      });
+    }
+    window.pinKey=function(k){
+      if(entered.length>=6) return;
+      document.getElementById('pin-error').textContent='';
+      entered+=k; update();
+      if(entered.length===6){
+        if(entered===PIN){
+          localStorage.setItem('jj_unlocked','1');
+          document.getElementById('pin-gate').style.display='none';
+        } else {
+          document.getElementById('pin-error').textContent='PIN incorreto';
+          setTimeout(function(){ entered=''; update(); document.getElementById('pin-error').textContent=''; }, 900);
+        }
+      }
+    };
+    window.pinDel=function(){
+      if(entered.length>0){ entered=entered.slice(0,-1); update(); }
+    };
+    document.addEventListener('keydown', function(e){
+      if(e.key>='0' && e.key<='9') pinKey(e.key);
+      else if(e.key==='Backspace') pinDel();
+    });
+  })();
+</script>
 <div id="root"></div>
 <script type="text/babel">
 const { useState, useEffect, useRef } = React;
