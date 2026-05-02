@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>J & J — Roteiro</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <style>
+    /* ── Tema Escuro (padrão) ── */
+    :root {
+      --bg:            #0C0B09;
+      --bg-card:       #161410;
+      --bg-input:      #0D0C0A;
+      --bg-row-hover:  #181510;
+      --text:          #E8DEC8;
+      --text-label:    #6B5E45;
+      --text-muted:    #5B5040;
+      --text-ph:       #4B4030;
+      --text-header:   #F5ECD4;
+      --text-hsub:     rgba(255,255,255,0.35);
+      --accent:        #C9A84C;
+      --accent-h:      #E0BC5A;
+      --accent-text:   #0C0B09;
+      --border:        rgba(255,255,255,0.07);
+      --border-input:  rgba(255,255,255,0.1);
+      --border-modal:  rgba(201,168,76,0.2);
+      --header-bg:     linear-gradient(180deg,#0A0806 0%,#140E06 60%,#0C0B09 100%);
+      --header-border: rgba(201,168,76,0.15);
+      --divider-color: rgba(201,168,76,0.6);
+      --bg-thead:      #0D0C0A;
+      --modal-shadow:  0 24px 80px rgba(0,0,0,0.6);
+      --modal-text:    #F5ECD4;
+      --cancel-border: rgba(255,255,255,0.12);
+      --cancel-text:   #8B7A5A;
+    }
+    /* ── Tema Claro ── */
+    [data-theme="light"] {
+      --bg:            #F5F0E8;
+      --bg-card:       #FDFAF5;
+      --bg-input:      #FFFFFF;
+      --bg-row-hover:  #F0E8D8;
+      --text:          #1A2C10;
+      --text-label:    #4A6B2A;
+      --text-muted:    #5A7A38;
+      --text-ph:       #9AB87A;
+      --text-header:   #F5ECD4;
+      --text-hsub:     rgba(245,236,212,0.7);
+      --accent:        #2D5016;
+      --accent-h:      #3A6820;
+      --accent-text:   #F5ECD4;
+      --border:        rgba(45,80,22,0.12);
+      --border-input:  rgba(45,80,22,0.2);
+      --border-modal:  rgba(196,168,76,0.35);
+      --header-bg:     linear-gradient(180deg,#1A3A0A 0%,#2D5016 55%,#3A6820 100%);
+      --header-border: rgba(196,168,76,0.3);
+      --divider-color: rgba(196,168,76,0.7);
+      --bg-thead:      #EDE5D4;
+      --modal-shadow:  0 24px 80px rgba(45,80,22,0.15);
+      --modal-text:    #1A2C10;
+      --cancel-border: rgba(45,80,22,0.2);
+      --cancel-text:   #5A7A38;
+    }
+
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;transition:background .3s,color .3s}
+
+    /* ── Header ── */
+    .jj-header{background:var(--header-bg);color:white;padding:28px 20px 20px;text-align:center;position:relative;overflow:hidden;border-bottom:1px solid var(--header-border);transition:background .3s}
+    .jj-header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+    .jj-header-inner{position:relative;z-index:1}
+    .jj-header-ornament{font-size:14px;letter-spacing:8px;color:var(--accent);opacity:0.8;margin-bottom:8px}
+    [data-theme="light"] .jj-header-ornament{color:#C4A84C}
+    .jj-header-title{font-size:clamp(32px,7vw,50px);font-weight:200;letter-spacing:clamp(6px,2vw,14px);color:var(--text-header);margin-bottom:4px;font-style:italic}
+    .jj-header-divider{display:flex;align-items:center;gap:16px;justify-content:center;margin:8px 0}
+    .jj-header-divider::before,.jj-header-divider::after{content:'';flex:1;max-width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--divider-color))}
+    .jj-header-diamond{color:var(--accent);font-size:10px}
+    [data-theme="light"] .jj-header-diamond{color:#C4A84C}
+    .jj-header-subtitle{font-size:10px;letter-spacing:3px;color:var(--text-hsub);text-transform:uppercase}
+    .conn-badge{position:absolute;top:14px;right:14px;z-index:2;display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.25)}
+    .conn-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+    .conn-badge.online .conn-dot{background:#4ADE80;box-shadow:0 0 6px rgba(74,222,128,0.5)}
+    .conn-badge.online{color:rgba(74,222,128,0.9)}
+    .conn-badge.offline .conn-dot{background:#9CA3AF}
+    .conn-badge.offline{color:rgba(255,255,255,0.4)}
+    .theme-btn{position:absolute;top:14px;left:14px;z-index:2;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.15);border-radius:20px;cursor:pointer;font-size:16px;padding:3px 10px;line-height:1.6;transition:background .15s}
+    .theme-btn:hover{background:rgba(0,0,0,0.4)}
+
+    /* ── Nav ── */
+    .jj-nav{background:var(--bg-card);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;transition:background .3s}
+    .jj-nav-link{padding:11px 20px;font-size:13px;font-weight:600;color:var(--text-muted);text-decoration:none;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;display:block}
+    .jj-nav-link:hover{color:var(--accent)}
+    .jj-nav-link.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+    /* ── Loading ── */
+    .loading-screen{min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+    .loading-logo{font-size:40px;font-weight:200;letter-spacing:12px;color:var(--text-header);font-style:italic}
+    .loading-spinner{width:32px;height:32px;border:2px solid color-mix(in srgb,var(--accent) 20%,transparent);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+    .loading-text{font-size:12px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ── Modal ── */
+    .jj-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1050;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);padding:16px}
+    .jj-modal{background:var(--bg-card);border:1px solid var(--border-modal);border-radius:16px;padding:24px 22px;width:100%;max-width:440px;box-shadow:var(--modal-shadow)}
+    .jj-modal-title{font-size:17px;font-weight:700;color:var(--modal-text);margin-bottom:18px}
+    .jj-form-group{margin-bottom:14px}
+    .jj-form-label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-label);margin-bottom:5px}
+    .jj-form-input{width:100%;border:1px solid var(--border-input);border-radius:8px;padding:9px 12px;font-size:14px;outline:none;background:var(--bg-input);color:var(--text);font-family:inherit;transition:border-color .15s}
+    .jj-form-input::placeholder{color:var(--text-ph)}
+    .jj-form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent)}
+    .jj-modal-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end}
+    .btn-cancel{padding:9px 18px;background:transparent;border:1px solid var(--cancel-border);border-radius:8px;cursor:pointer;font-size:14px;color:var(--cancel-text);font-family:inherit}
+    .btn-cancel:hover{background:var(--bg-row-hover)}
+    .btn-save{padding:9px 22px;background:var(--accent);color:var(--accent-text);border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;font-family:inherit}
+    .btn-save:hover{background:var(--accent-h)}
+    .btn-delete{padding:9px 22px;background:rgba(220,38,38,0.85);color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;font-family:inherit}
+    .btn-delete:hover{background:#DC2626}
+
+    /* ── Timeline ── */
+    .timeline{position:relative}
+    .timeline-line{position:absolute;left:27px;top:28px;bottom:28px;width:2px;background:linear-gradient(180deg,var(--accent) 0%,color-mix(in srgb,var(--accent) 15%,transparent) 100%);pointer-events:none}
+
+    .etapa-row{display:flex;gap:16px;margin-bottom:20px;align-items:flex-start}
+    .etapa-num-wrap{flex-shrink:0;z-index:1}
+    .etapa-num{width:56px;height:56px;border-radius:50%;background:var(--accent);color:var(--accent-text);font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px color-mix(in srgb,var(--accent) 30%,transparent)}
+
+    .etapa-card{flex:1;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+    .etapa-header{display:flex;align-items:center;gap:8px;padding:12px 14px;background:var(--bg-thead);border-bottom:1px solid var(--border)}
+    .etapa-titulo{flex:1;font-size:15px;font-weight:700;color:var(--accent);line-height:1.3}
+    .etapa-titulo-input{flex:1;border:1px solid var(--accent);border-radius:6px;padding:4px 9px;font-size:15px;font-weight:700;outline:none;background:var(--bg-input);color:var(--accent);font-family:inherit}
+    .etapa-actions{display:flex;gap:2px;flex-shrink:0}
+    .e-btn{background:none;border:none;cursor:pointer;padding:5px 7px;border-radius:6px;font-size:13px;line-height:1;color:var(--text-muted);transition:all .1s}
+    .e-btn:hover{background:var(--bg-row-hover);color:var(--accent)}
+    .e-btn.del:hover{color:#DC2626;background:rgba(220,38,38,0.08)}
+    .e-btn:disabled{opacity:0.2;cursor:default}
+    .e-btn:disabled:hover{background:none;color:var(--text-muted)}
+
+    .etapa-body{padding:4px 0}
+    .item-row{display:flex;align-items:flex-start;gap:8px;padding:7px 14px;transition:background .1s}
+    .item-row:hover{background:var(--bg-row-hover)}
+    .item-diamond{color:var(--accent);font-size:9px;margin-top:5px;flex-shrink:0;opacity:0.7}
+    .item-text{flex:1;font-size:13px;color:var(--text);line-height:1.55}
+    .item-edit-input{flex:1;border:1px solid var(--accent);border-radius:6px;padding:3px 8px;font-size:13px;outline:none;background:var(--bg-input);color:var(--text);font-family:inherit;line-height:1.55;resize:none}
+    .item-del-btn{background:none;border:none;cursor:pointer;padding:3px 5px;border-radius:5px;font-size:11px;line-height:1;color:var(--text-muted);opacity:0;transition:all .1s;flex-shrink:0;margin-top:2px}
+    .item-row:hover .item-del-btn{opacity:1}
+    .item-del-btn:hover{background:rgba(220,38,38,0.1);color:#DC2626}
+
+    .etapa-empty{padding:12px 14px;font-size:12px;color:var(--text-muted);font-style:italic}
+
+    .add-item-row{display:flex;gap:8px;padding:8px 12px;border-top:1px dashed var(--border)}
+    .add-item-input{flex:1;border:1px solid var(--border-input);border-radius:8px;padding:7px 11px;font-size:13px;outline:none;background:var(--bg-input);color:var(--text);font-family:inherit;transition:border-color .15s}
+    .add-item-input::placeholder{color:var(--text-ph)}
+    .add-item-input:focus{border-color:var(--accent)}
+    .add-item-btn{padding:7px 12px;background:color-mix(in srgb,var(--accent) 15%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;font-family:inherit}
+    .add-item-btn:hover{background:color-mix(in srgb,var(--accent) 25%,transparent)}
+
+    .add-etapa-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px 20px;background:var(--bg-card);border:1px dashed var(--border-input);border-radius:12px;cursor:pointer;font-size:14px;font-weight:600;color:var(--text-muted);transition:all .15s;margin-top:4px;font-family:inherit}
+    .add-etapa-btn:hover{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 5%,transparent)}
+
+    .hint-bar{font-size:11px;color:var(--text-muted);margin-bottom:18px;text-align:center;letter-spacing:.3px;padding:8px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px}
+
+    @media(max-width:576px){
+      .timeline-line{left:19px}
+      .etapa-num{width:40px;height:40px;font-size:15px}
+      .etapa-row{gap:10px}
+      .etapa-titulo{font-size:13px}
+      .item-del-btn{opacity:1}
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// ── Firebase ───────────────────────────────────────────────────
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyDa3kZz55KfGvJtrUlmOhg-9HOSvCDNjFQ",
+  authDomain:        "casamento-jj.firebaseapp.com",
+  databaseURL:       "https://casamento-jj-default-rtdb.firebaseio.com",
+  projectId:         "casamento-jj",
+  storageBucket:     "casamento-jj.firebasestorage.app",
+  messagingSenderId: "35657642946",
+  appId:             "1:35657642946:web:31f25ba40efaffbe9f1c5b"
+};
+firebase.initializeApp(FIREBASE_CONFIG);
+const ADMIN_UID   = '0XrGEivRvCbZVEfO2tQmGD712dl1';
+const ROTEIRO_REF = firebase.database().ref('roteiro');
+
+// ── Seed ──────────────────────────────────────────────────────
+const SEED = [
+  { titulo: 'Pré-Recepção',
+    items: ['Oferecer (garçons) ou, deixar uma mesa como ponto de hidratação com sucos e água, e salada de frutas (simples).'] },
+  { titulo: 'Início da Cerimônia',
+    items: [
+      'Aline, fazendo abertura da cerimônia com uma oração de gratidão e convidando a presença de Jesus (e falar sobre os celulares).',
+      'Entrada do Pietro (sozinho) com a placa "Jesus, nosso convidado de honra", e colocando sob uma cadeira reservada a frente.',
+      'Entrada da Heloisa (sozinha) com a bíblia do Pastor Lucas e deixando-a sob o altar.',
+    ] },
+  { titulo: 'Entrada dos Padrinhos',
+    items: [
+      'Pastor Lucas e Pra Mary (Marcos)',
+      'Lucas e Nathiely (Beatriz)',
+      'Marcos e Francielly (Marcos)',
+      'Guilherme R. e Barbara (Beatriz)',
+      'Guilherme N. e Josiane (Marcos)',
+      'Wellington e Ana (Beatriz)',
+      'Sebastião e Luzia (Marcos)',
+      'Abner e Aline (Beatriz)',
+      'Davi e Sibele (Marcos)',
+      'César e Juliana (Beatriz)',
+      'Dirceu e Cintia (Marcos)',
+      'João e Júlia (Beatriz)',
+      'Victor e Beatriz (Beatriz)',
+      'Caique e Samanta (Beatriz)',
+      'Rose e Dalva (Marcos e Beatriz)',
+    ] },
+  { titulo: 'Entrada das Demoiselles',
+    items: ['Isabela e Estefany', 'Sabrina e Lenilda'] },
+  { titulo: 'Entrada dos Pais do Noivo',
+    items: ['Itamar e Lenilda'] },
+  { titulo: 'Entrada do Noivo',
+    items: [] },
+  { titulo: 'Entrada da Florista e dos Príncipes das Flores',
+    items: [
+      'Giovana, na frente, espalhando as pétalas',
+      'Nicolas e Miguel, atrás, entregando as rosas para as convidadas durante o caminho',
+    ] },
+  { titulo: 'Entrada dos Noivinhões',
+    items: ['Miguel e Milena (Beatriz)', 'Davi e Sara (Marcos)'] },
+];
+
+function buildSeed() {
+  const base = Date.now();
+  return SEED.map((s, i) => ({
+    id: String(base + i * 10),
+    titulo: s.titulo,
+    items: s.items,
+    ordem: i,
+    criadoEm: base,
+  }));
+}
+
+const parseItems = raw => {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw.filter(x => x != null);
+  if (typeof raw === 'object') return Object.values(raw).filter(x => x != null);
+  return [];
+};
+
+// ── LoginGate ─────────────────────────────────────────────────
+function LoginGate() {
+  const [email, setEmail] = useState('');
+  const [pw, setPw]       = useState('');
+  const [err, setErr]     = useState('');
+  const [busy, setBusy]   = useState(false);
+
+  const login = () => {
+    setBusy(true); setErr('');
+    firebase.auth().signInWithEmailAndPassword(email, pw)
+      .catch(() => { setErr('E-mail ou senha incorretos.'); setBusy(false); });
+  };
+
+  return (
+    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'var(--bg)',padding:'24px',gap:28}}>
+      <div style={{textAlign:'center'}}>
+        <div style={{fontSize:13,letterSpacing:8,color:'var(--accent)',opacity:.8,marginBottom:12}}>✦ ✦ ✦</div>
+        <div style={{fontSize:'clamp(40px,10vw,64px)',fontWeight:200,letterSpacing:'clamp(8px,2vw,16px)',color:'var(--text-header)',fontStyle:'italic'}}>J &amp; J</div>
+        <div style={{display:'flex',alignItems:'center',gap:16,justifyContent:'center',margin:'10px 0'}}>
+          <div style={{flex:1,maxWidth:80,height:1,background:'linear-gradient(90deg,transparent,rgba(201,168,76,.6))'}} />
+          <span style={{color:'var(--accent)',fontSize:10}}>◆</span>
+          <div style={{flex:1,maxWidth:80,height:1,background:'linear-gradient(90deg,rgba(201,168,76,.6),transparent)'}} />
+        </div>
+        <div style={{fontSize:11,letterSpacing:3,color:'var(--text-muted)',textTransform:'uppercase'}}>20 de Novembro de 2027</div>
+      </div>
+      <div style={{background:'var(--bg-card)',border:'1px solid var(--border-modal)',borderRadius:16,padding:'28px 24px',width:'100%',maxWidth:320,boxShadow:'var(--modal-shadow)'}}>
+        <div style={{marginBottom:10}}>
+          <label style={{display:'block',fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1.5,color:'var(--text-label)',marginBottom:5}}>E-mail</label>
+          <input className="jj-form-input" type="email" autoFocus value={email}
+            onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key==='Enter'&&login()} />
+        </div>
+        <div style={{marginBottom:16}}>
+          <label style={{display:'block',fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1.5,color:'var(--text-label)',marginBottom:5}}>Senha</label>
+          <input className="jj-form-input" type="password" value={pw}
+            onChange={e => setPw(e.target.value)} onKeyDown={e => e.key==='Enter'&&login()} />
+        </div>
+        {err && <p style={{color:'#EF4444',fontSize:12,margin:'0 0 12px'}}>{err}</p>}
+        <button style={{width:'100%',padding:'12px',background:'var(--accent)',color:'var(--accent-text)',border:'none',borderRadius:8,cursor:'pointer',fontSize:14,fontWeight:700,marginBottom:12,fontFamily:'inherit'}}
+          onClick={login} disabled={busy}>{busy ? 'Entrando...' : 'Entrar'}</button>
+        <div style={{textAlign:'center'}}>
+          <button style={{background:'none',border:'none',cursor:'pointer',fontSize:12,color:'var(--text-muted)',fontFamily:'inherit',padding:0}}
+            onClick={() => firebase.auth().signInAnonymously()}>
+            Continuar como convidado →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── AddEtapaModal ─────────────────────────────────────────────
+function AddEtapaModal({ onSave, onClose }) {
+  const [titulo, setTitulo] = useState('');
+  const save = () => { if (titulo.trim()) onSave(titulo.trim()); };
+  return (
+    <div className="jj-overlay" onClick={onClose}>
+      <div className="jj-modal" onClick={e => e.stopPropagation()}>
+        <div className="jj-modal-title">＋ Nova Etapa</div>
+        <div className="jj-form-group">
+          <label className="jj-form-label">Título da Etapa *</label>
+          <input className="jj-form-input" autoFocus value={titulo}
+            onChange={e => setTitulo(e.target.value)}
+            placeholder="ex: Entrada da Noiva"
+            onKeyDown={e => e.key==='Enter' && save()} />
+        </div>
+        <div className="jj-modal-actions">
+          <button className="btn-cancel" onClick={onClose}>Cancelar</button>
+          <button className="btn-save" onClick={save}>Adicionar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── DeleteEtapaModal ──────────────────────────────────────────
+function DeleteEtapaModal({ etapa, onConfirm, onClose }) {
+  return (
+    <div className="jj-overlay" onClick={onClose}>
+      <div className="jj-modal" onClick={e => e.stopPropagation()}>
+        <div className="jj-modal-title">Remover etapa?</div>
+        <p style={{fontSize:14,color:'var(--modal-text)',lineHeight:1.6,marginBottom:4}}>
+          Remover <strong>{etapa.titulo}</strong> e todos os seus itens?
+        </p>
+        <p style={{fontSize:12,color:'var(--text-muted)'}}>Essa ação remove para os dois.</p>
+        <div className="jj-modal-actions">
+          <button className="btn-cancel" onClick={onClose}>Cancelar</button>
+          <button className="btn-delete" onClick={onConfirm}>Sim, remover</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── ItemRow ───────────────────────────────────────────────────
+function ItemRow({ text, isAdmin, onUpdate, onDelete }) {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal]         = useState(text);
+
+  useEffect(() => { if (!editing) setVal(text); }, [text, editing]);
+
+  const save = () => {
+    const v = val.trim();
+    if (v && v !== text) onUpdate(v);
+    else setVal(text);
+    setEditing(false);
+  };
+
+  return (
+    <div className="item-row">
+      <span className="item-diamond">◆</span>
+      {isAdmin && editing ? (
+        <textarea className="item-edit-input" value={val} rows={2}
+          onChange={e => setVal(e.target.value)}
+          onBlur={save}
+          onKeyDown={e => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); save(); }
+            if (e.key === 'Escape') { setVal(text); setEditing(false); }
+          }}
+          autoFocus />
+      ) : (
+        <span className="item-text"
+          onClick={isAdmin ? () => setEditing(true) : undefined}
+          title={isAdmin ? 'Clique para editar' : ''}
+          style={isAdmin ? {cursor:'text'} : {}}>
+          {text}
+        </span>
+      )}
+      {isAdmin && !editing && (
+        <button className="item-del-btn" onClick={onDelete} title="Remover">✕</button>
+      )}
+    </div>
+  );
+}
+
+// ── EtapaCard ─────────────────────────────────────────────────
+function EtapaCard({ etapa, isFirst, isLast, isAdmin, onDelete, onMoveUp, onMoveDown }) {
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleVal, setTitleVal]         = useState(etapa.titulo);
+  const [addVal,   setAddVal]           = useState('');
+  const addRef = useRef();
+  const items  = parseItems(etapa.items);
+
+  useEffect(() => { if (!editingTitle) setTitleVal(etapa.titulo); }, [etapa.titulo, editingTitle]);
+
+  const saveTitle = () => {
+    const v = titleVal.trim();
+    if (v && v !== etapa.titulo) ROTEIRO_REF.child(etapa.id).update({ titulo: v });
+    else setTitleVal(etapa.titulo);
+    setEditingTitle(false);
+  };
+
+  const updateItem = (index, text) => {
+    const next = [...items]; next[index] = text;
+    ROTEIRO_REF.child(etapa.id).update({ items: next });
+  };
+
+  const deleteItem = (index) => {
+    ROTEIRO_REF.child(etapa.id).update({ items: items.filter((_, i) => i !== index) });
+  };
+
+  const addItem = () => {
+    const v = addVal.trim();
+    if (!v) return;
+    ROTEIRO_REF.child(etapa.id).update({ items: [...items, v] });
+    setAddVal('');
+    addRef.current && addRef.current.focus();
+  };
+
+  return (
+    <div className="etapa-card">
+      <div className="etapa-header">
+        {isAdmin && editingTitle ? (
+          <input className="etapa-titulo-input" value={titleVal}
+            autoFocus
+            onChange={e => setTitleVal(e.target.value)}
+            onBlur={saveTitle}
+            onKeyDown={e => {
+              if (e.key === 'Enter') saveTitle();
+              if (e.key === 'Escape') { setTitleVal(etapa.titulo); setEditingTitle(false); }
+            }} />
+        ) : (
+          <span className="etapa-titulo"
+            onClick={isAdmin ? () => setEditingTitle(true) : undefined}
+            title={isAdmin ? 'Clique para editar' : ''}
+            style={isAdmin ? {cursor:'text'} : {}}>
+            {etapa.titulo}
+          </span>
+        )}
+        {isAdmin && (
+          <div className="etapa-actions">
+            <button className="e-btn" onClick={onMoveUp}   disabled={isFirst} title="Mover para cima">↑</button>
+            <button className="e-btn" onClick={onMoveDown} disabled={isLast}  title="Mover para baixo">↓</button>
+            <button className="e-btn del" onClick={onDelete} title="Remover etapa">🗑️</button>
+          </div>
+        )}
+      </div>
+
+      <div className="etapa-body">
+        {items.length === 0 && (
+          <div className="etapa-empty">{isAdmin ? 'Sem itens — adicione abaixo.' : '—'}</div>
+        )}
+        {items.map((item, i) => (
+          <ItemRow key={i} text={item} isAdmin={isAdmin}
+            onUpdate={text => updateItem(i, text)}
+            onDelete={() => deleteItem(i)} />
+        ))}
+      </div>
+
+      {isAdmin && (
+        <div className="add-item-row">
+          <input ref={addRef} className="add-item-input"
+            placeholder="Adicionar item..."
+            value={addVal}
+            onChange={e => setAddVal(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && addItem()} />
+          <button className="add-item-btn" onClick={addItem}>+ Add</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── App ───────────────────────────────────────────────────────
+function App() {
+  const [theme,       setTheme]       = useState(() => localStorage.getItem('jj-theme') || 'dark');
+  const [etapas,      setEtapas]      = useState([]);
+  const [loaded,      setLoaded]      = useState(false);
+  const [online,      setOnline]      = useState(false);
+  const [currentUser, setCurrentUser] = useState(undefined);
+  const [isAdmin,     setIsAdmin]     = useState(false);
+  const [modal,       setModal]       = useState(null);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('jj-theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    let attached = false;
+    const unsubAuth = firebase.auth().onAuthStateChanged(user => {
+      setCurrentUser(user);
+      if (!user) return;
+      const admin = user.uid === ADMIN_UID;
+      setIsAdmin(admin);
+      if (attached) return;
+      attached = true;
+      ROTEIRO_REF.on('value', snap => {
+        const data = snap.val();
+        if (data) {
+          const list = Object.values(data)
+            .filter(e => e && e.id)
+            .sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0));
+          setEtapas(list);
+        } else if (admin) {
+          const seed = buildSeed();
+          const obj  = {};
+          seed.forEach(e => { obj[e.id] = e; });
+          ROTEIRO_REF.set(obj).catch(console.error);
+        }
+        setLoaded(true);
+      }, err => {
+        console.error('Firebase Roteiro:', err);
+        setLoaded(true);
+      });
+      firebase.database().ref('.info/connected').on('value', snap => setOnline(!!snap.val()));
+    });
+    return () => {
+      unsubAuth();
+      ROTEIRO_REF.off();
+      firebase.database().ref('.info/connected').off();
+    };
+  }, []);
+
+  const addEtapa = titulo => {
+    const id = String(Date.now());
+    const maxOrdem = etapas.length > 0 ? Math.max(...etapas.map(e => e.ordem ?? 0)) : -1;
+    ROTEIRO_REF.child(id).set({ id, titulo, items: [], ordem: maxOrdem + 1, criadoEm: Date.now() });
+    setModal(null);
+  };
+
+  const deleteEtapa = id => {
+    ROTEIRO_REF.child(id).remove();
+    setModal(null);
+  };
+
+  const moveEtapa = (id, direction) => {
+    const idx     = etapas.findIndex(e => e.id === id);
+    const swapIdx = idx + direction;
+    if (swapIdx < 0 || swapIdx >= etapas.length) return;
+    const a = etapas[idx];
+    const b = etapas[swapIdx];
+    ROTEIRO_REF.child(a.id).update({ ordem: b.ordem ?? swapIdx });
+    ROTEIRO_REF.child(b.id).update({ ordem: a.ordem ?? idx });
+  };
+
+  // ── Loading states ──
+  if (currentUser === undefined) return (
+    <div className="loading-screen">
+      <div className="loading-logo">J &amp; J</div>
+      <div className="loading-spinner" />
+    </div>
+  );
+
+  if (currentUser === null) return <LoginGate />;
+
+  if (!loaded) return (
+    <div className="loading-screen">
+      <div className="loading-logo">J &amp; J</div>
+      <div className="loading-spinner" />
+      <div className="loading-text">carregando...</div>
+    </div>
+  );
+
+  return (
+    <>
+      <header className="jj-header">
+        <button className="theme-btn"
+          onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+          title={theme === 'dark' ? 'Tema claro' : 'Tema escuro'}>
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
+        <div className={`conn-badge ${online ? 'online' : 'offline'}`}>
+          <div className="conn-dot" />
+          {online ? 'Ao vivo' : 'Offline'}
+        </div>
+        <div className="jj-header-inner">
+          <div className="jj-header-ornament">✦ ✦ ✦</div>
+          <div className="jj-header-title">J &amp; J</div>
+          <div className="jj-header-divider"><span className="jj-header-diamond">◆</span></div>
+          <div className="jj-header-subtitle">20 de Novembro de 2027 — Roteiro da Cerimônia</div>
+        </div>
+      </header>
+
+      <nav className="jj-nav">
+        <a href="./index.html" className="jj-nav-link">👥 Convidados</a>
+        {isAdmin && <a href="./fornecedores.html" className="jj-nav-link">🏪 Fornecedores</a>}
+        {isAdmin && <a href="./gastos.html"       className="jj-nav-link">💰 Gastos</a>}
+        {isAdmin && <a href="./extrato.html"      className="jj-nav-link">💳 Extrato</a>}
+        <a href="./roteiro.html" className="jj-nav-link active">📋 Roteiro</a>
+        <button className="jj-nav-link" style={{marginLeft:'auto',border:'none',background:'none',cursor:'pointer'}}
+          onClick={() => firebase.auth().signOut()}>
+          {isAdmin ? '🔓 Sair' : '🔑 Admin'}
+        </button>
+      </nav>
+
+      <div className="container-fluid px-3 px-md-4" style={{maxWidth:800,margin:'0 auto',paddingTop:28,paddingBottom:48}}>
+
+        {isAdmin && (
+          <div className="hint-bar">
+            Clique no título ou nos itens para editar inline · ↑↓ para reordenar · ＋ para adicionar
+          </div>
+        )}
+
+        {etapas.length === 0 && !isAdmin ? (
+          <div style={{textAlign:'center',padding:'64px 20px',color:'var(--text-muted)'}}>
+            <div style={{fontSize:40,marginBottom:14}}>📋</div>
+            <div style={{fontSize:15,fontWeight:600,marginBottom:6}}>Roteiro ainda não preenchido</div>
+            <div style={{fontSize:13}}>Acesse como admin para configurar o roteiro da cerimônia.</div>
+          </div>
+        ) : (
+          <div className="timeline" style={{position:'relative'}}>
+            <div className="timeline-line" />
+            {etapas.map((etapa, idx) => (
+              <div key={etapa.id} className="etapa-row">
+                <div className="etapa-num-wrap">
+                  <div className="etapa-num">{idx + 1}</div>
+                </div>
+                <EtapaCard
+                  etapa={etapa}
+                  isFirst={idx === 0}
+                  isLast={idx === etapas.length - 1}
+                  isAdmin={isAdmin}
+                  onDelete={() => setModal({ type: 'delete', etapa })}
+                  onMoveUp={() => moveEtapa(etapa.id, -1)}
+                  onMoveDown={() => moveEtapa(etapa.id, 1)}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {isAdmin && (
+          <button className="add-etapa-btn" onClick={() => setModal({ type: 'add' })}>
+            ＋ Nova etapa
+          </button>
+        )}
+      </div>
+
+      {modal?.type === 'add'    && <AddEtapaModal onSave={addEtapa} onClose={() => setModal(null)} />}
+      {modal?.type === 'delete' && (
+        <DeleteEtapaModal etapa={modal.etapa}
+          onConfirm={() => deleteEtapa(modal.etapa.id)}
+          onClose={() => setModal(null)} />
+      )}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

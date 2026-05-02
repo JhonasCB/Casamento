@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>J & J — Lista de Convidados</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <style>
+    /* ── Tema Escuro (padrão) ── */
+    :root {
+      --bg:            #0C0B09;
+      --bg-card:       #161410;
+      --bg-input:      #0D0C0A;
+      --bg-table:      #111009;
+      --bg-thead:      #0D0C0A;
+      --bg-th-hover:   #151210;
+      --bg-row-hover:  #181510;
+      --text:          #E8DEC8;
+      --text-label:    #6B5E45;
+      --text-muted:    #5B5040;
+      --text-ph:       #4B4030;
+      --text-header:   #F5ECD4;
+      --text-hsub:     rgba(255,255,255,0.35);
+      --accent:        #C9A84C;
+      --accent-h:      #E0BC5A;
+      --accent-text:   #0C0B09;
+      --border:        rgba(255,255,255,0.07);
+      --border-input:  rgba(255,255,255,0.1);
+      --border-modal:  rgba(201,168,76,0.2);
+      --header-bg:     linear-gradient(180deg,#0A0806 0%,#140E06 60%,#0C0B09 100%);
+      --header-border: rgba(201,168,76,0.15);
+      --divider-color: rgba(201,168,76,0.6);
+      --cd-num:        #C9A84C;
+      --cd-label:      rgba(255,255,255,0.3);
+      --cd-sep:        rgba(201,168,76,0.3);
+      --toggle-off:    #2A2418;
+      --modal-shadow:  0 24px 80px rgba(0,0,0,0.6);
+      --modal-text:    #F5ECD4;
+      --cancel-border: rgba(255,255,255,0.12);
+      --cancel-text:   #8B7A5A;
+      --delete-text:   #C4BAA4;
+      --stat-text:     #E8DEC8;
+    }
+
+    /* ── Tema Claro (paleta do convite) ── */
+    [data-theme="light"] {
+      --bg:            #F5F0E8;
+      --bg-card:       #FDFAF5;
+      --bg-input:      #FFFFFF;
+      --bg-table:      #FDFAF5;
+      --bg-thead:      #EDE5D4;
+      --bg-th-hover:   #E0D4BE;
+      --bg-row-hover:  #F0E8D8;
+      --text:          #1A2C10;
+      --text-label:    #4A6B2A;
+      --text-muted:    #5A7A38;
+      --text-ph:       #9AB87A;
+      --text-header:   #F5ECD4;
+      --text-hsub:     rgba(245,236,212,0.7);
+      --accent:        #2D5016;
+      --accent-h:      #3A6820;
+      --accent-text:   #F5ECD4;
+      --border:        rgba(45,80,22,0.12);
+      --border-input:  rgba(45,80,22,0.2);
+      --border-modal:  rgba(196,168,76,0.35);
+      --header-bg:     linear-gradient(180deg,#1A3A0A 0%,#2D5016 55%,#3A6820 100%);
+      --header-border: rgba(196,168,76,0.3);
+      --divider-color: rgba(196,168,76,0.7);
+      --cd-num:        #C4A84C;
+      --cd-label:      rgba(245,236,212,0.7);
+      --cd-sep:        rgba(196,168,76,0.4);
+      --toggle-off:    #D4C9A8;
+      --modal-shadow:  0 24px 80px rgba(45,80,22,0.15);
+      --modal-text:    #1A2C10;
+      --cancel-border: rgba(45,80,22,0.2);
+      --cancel-text:   #5A7A38;
+      --delete-text:   #2C2010;
+      --stat-text:     #1A2C10;
+    }
+
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;transition:background .3s,color .3s}
+
+    /* ── Header ── */
+    .jj-header{background:var(--header-bg);color:white;padding:40px 20px 28px;text-align:center;position:relative;overflow:hidden;border-bottom:1px solid var(--header-border);transition:background .3s}
+    .jj-header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+    .jj-header-inner{position:relative;z-index:1}
+    .jj-header-ornament{font-size:14px;letter-spacing:8px;color:var(--accent);opacity:0.8;margin-bottom:12px}
+    [data-theme="light"] .jj-header-ornament{color:#C4A84C}
+    .jj-header-title{font-size:clamp(36px,8vw,56px);font-weight:200;letter-spacing:clamp(6px,2vw,14px);color:var(--text-header);margin-bottom:4px;font-style:italic}
+    .jj-header-divider{display:flex;align-items:center;gap:16px;justify-content:center;margin:12px 0}
+    .jj-header-divider::before,.jj-header-divider::after{content:'';flex:1;max-width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--divider-color))}
+    .jj-header-diamond{color:var(--accent);font-size:10px}
+    [data-theme="light"] .jj-header-diamond{color:#C4A84C}
+    .jj-header-subtitle{font-size:10px;letter-spacing:3px;color:var(--text-hsub);text-transform:uppercase;margin-bottom:24px}
+    .conn-badge{position:absolute;top:14px;right:14px;z-index:2;display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.25)}
+    .conn-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+    .conn-badge.online .conn-dot{background:#4ADE80;box-shadow:0 0 6px rgba(74,222,128,0.5)}
+    .conn-badge.online{color:rgba(74,222,128,0.9)}
+    .conn-badge.offline .conn-dot{background:#9CA3AF}
+    .conn-badge.offline{color:rgba(255,255,255,0.4)}
+    .theme-btn{position:absolute;top:14px;left:14px;z-index:2;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.15);border-radius:20px;cursor:pointer;font-size:16px;padding:3px 10px;line-height:1.6;transition:background .15s}
+    .theme-btn:hover{background:rgba(0,0,0,0.4)}
+
+    /* ── Countdown ── */
+    .countdown{display:flex;justify-content:center;gap:clamp(10px,3vw,24px)}
+    .cd-block{text-align:center;min-width:52px}
+    .cd-num{font-size:clamp(24px,5vw,36px);font-weight:700;color:var(--cd-num);line-height:1;font-variant-numeric:tabular-nums}
+    .cd-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--cd-label);margin-top:4px}
+    .cd-sep{font-size:clamp(20px,4vw,28px);color:var(--cd-sep);line-height:1;padding-top:4px}
+
+    /* ── Stat Cards ── */
+    .stat-card{background:var(--bg-card);border-radius:12px;padding:14px 10px;text-align:center;border:1px solid var(--border);cursor:pointer;transition:all .15s;height:100%}
+    .stat-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+    .stat-card.active-filter{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+    .stat-number{font-size:clamp(22px,5vw,30px);font-weight:700;line-height:1;color:var(--stat-text)}
+    .stat-label{font-size:9px;color:var(--text-label);text-transform:uppercase;letter-spacing:1.5px;margin-top:6px}
+    .stat-card.confirmed .stat-number{color:#4ADE80}
+    .stat-card.pending .stat-number{color:#FBB040}
+    .stat-card.children .stat-number{color:#818CF8}
+    .stat-card.excluded .stat-number{color:#6B7280}
+
+    /* ── Controls ── */
+    .search-wrap{position:relative;flex:1;min-width:180px}
+    .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:16px;pointer-events:none}
+    .search-input{width:100%;border:1px solid var(--border-input);border-radius:8px;padding:10px 14px 10px 38px;font-size:14px;background:var(--bg-input);color:var(--text);outline:none;transition:border-color .15s}
+    .search-input::placeholder{color:var(--text-ph)}
+    .search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent)}
+    .add-btn{display:flex;align-items:center;gap:6px;padding:10px 18px;background:var(--accent);color:var(--accent-text);border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;transition:background .15s;white-space:nowrap}
+    .add-btn:hover{background:var(--accent-h)}
+    .export-btn{padding:10px 14px;background:var(--bg-card);border:1px solid var(--border-input);border-radius:8px;cursor:pointer;font-size:13px;color:var(--text-muted);transition:all .15s;white-space:nowrap}
+    .export-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+    /* ── Filters ── */
+    .filter-chip{padding:7px 14px;border-radius:20px;border:1px solid var(--border-input);background:var(--bg-card);cursor:pointer;font-size:12px;font-weight:500;color:var(--text-muted);transition:all .15s;white-space:nowrap}
+    .filter-chip:hover{border-color:var(--accent);color:var(--accent)}
+    .filter-chip.active{background:var(--accent);color:var(--accent-text);border-color:var(--accent);font-weight:700}
+    .show-excluded-toggle{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:12px;color:var(--text-muted);cursor:pointer;user-select:none;flex-shrink:0}
+    .toggle-switch{width:36px;height:20px;background:var(--toggle-off);border-radius:10px;position:relative;transition:background .2s;flex-shrink:0;border:1px solid var(--border-input)}
+    .toggle-switch.on{background:var(--accent)}
+    .toggle-knob{position:absolute;top:2px;left:2px;width:14px;height:14px;background:white;border-radius:50%;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+    .toggle-switch.on .toggle-knob{left:18px}
+
+    /* ── Table ── */
+    .table-wrap{background:var(--bg-table);border-radius:12px;border:1px solid var(--border);overflow:hidden}
+    table{width:100%;border-collapse:collapse}
+    thead th{background:var(--bg-thead);padding:11px 12px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-muted);font-weight:700;border-bottom:1px solid var(--border);user-select:none;cursor:pointer;white-space:nowrap}
+    thead th:hover{background:var(--bg-th-hover);color:var(--text-label)}
+    thead th.sort-active{color:var(--accent)}
+    tbody tr{transition:background .1s}
+    tbody tr:hover td{background:var(--bg-row-hover)}
+    tbody tr.is-excluded{opacity:0.35}
+    tbody tr.is-excluded:hover{opacity:0.55}
+    tbody td{padding:10px 12px;border-top:1px solid var(--border);vertical-align:middle}
+    .guest-name{font-weight:500;color:var(--text);font-size:14px}
+    .guest-note{font-size:11px;color:var(--text-muted);font-style:italic;margin-top:2px}
+    .group-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;letter-spacing:0.5px}
+    .status-pill{display:inline-block;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;transition:opacity .1s;user-select:none}
+    .status-pill:hover{opacity:0.75}
+    .s-invited{background:rgba(251,176,64,0.15);color:#D97706;border:1px solid rgba(251,176,64,0.3)}
+    .s-confirmed{background:rgba(74,222,128,0.12);color:#16A34A;border:1px solid rgba(74,222,128,0.3)}
+    .s-declined{background:rgba(248,113,113,0.12);color:#DC2626;border:1px solid rgba(248,113,113,0.3)}
+    .s-excluded{background:rgba(107,114,128,0.12);color:#6B7280;border:1px solid rgba(107,114,128,0.3)}
+    [data-theme="dark"] .s-invited{color:#FBB040}
+    [data-theme="dark"] .s-confirmed{color:#4ADE80}
+    [data-theme="dark"] .s-declined{color:#F87171}
+    .kid-chip{display:inline-block;padding:2px 8px;background:rgba(129,140,248,0.12);color:#818CF8;border-radius:10px;font-size:11px;margin:1px 2px;border:1px solid rgba(129,140,248,0.2)}
+    .action-btn{background:none;border:none;cursor:pointer;padding:7px 9px;border-radius:6px;font-size:16px;line-height:1;transition:background .1s;color:var(--text-muted)}
+    .action-btn:hover{background:var(--bg-row-hover);color:var(--accent)}
+    .action-btn.del:hover{background:rgba(248,113,113,0.12);color:#DC2626}
+    .results-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 0 4px;font-size:12px;color:var(--text-muted);flex-wrap:wrap;gap:8px}
+    .empty-state{padding:60px 20px;text-align:center;color:var(--text-muted)}
+    .empty-icon{font-size:40px;margin-bottom:12px}
+
+    /* ── Modal ── */
+    .jj-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1050;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);padding:16px}
+    .jj-modal{background:var(--bg-card);border:1px solid var(--border-modal);border-radius:16px;padding:28px 24px;width:100%;max-width:480px;box-shadow:var(--modal-shadow);max-height:90vh;overflow-y:auto}
+    .jj-modal-title{font-size:18px;font-weight:700;color:var(--modal-text);margin-bottom:20px}
+    .jj-form-group{margin-bottom:14px}
+    .jj-form-label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-label);margin-bottom:6px}
+    .jj-form-input,.jj-form-select{width:100%;border:1px solid var(--border-input);border-radius:8px;padding:10px 14px;font-size:14px;outline:none;background:var(--bg-input);font-family:inherit;color:var(--text);transition:border-color .15s;-webkit-appearance:none;appearance:none}
+    .jj-form-input::placeholder{color:var(--text-ph)}
+    .jj-form-input:focus,.jj-form-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent)}
+    .jj-form-select option{background:var(--bg-card);color:var(--text)}
+    .children-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+    .child-tag{display:flex;align-items:center;gap:4px;background:rgba(129,140,248,0.12);border-radius:20px;padding:4px 10px;font-size:12px;color:#818CF8;border:1px solid rgba(129,140,248,0.2)}
+    .child-tag button{background:none;border:none;cursor:pointer;color:#818CF8;font-size:16px;line-height:1;padding:0}
+    .child-input-row{display:flex;gap:8px}
+    .child-add-btn{padding:10px 14px;background:rgba(129,140,248,0.12);color:#818CF8;border:1px solid rgba(129,140,248,0.2);border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;white-space:nowrap}
+    .child-add-btn:hover{background:rgba(129,140,248,0.22)}
+    .jj-modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end;flex-wrap:wrap}
+    .btn-cancel{padding:10px 20px;background:transparent;border:1px solid var(--cancel-border);border-radius:8px;cursor:pointer;font-size:14px;color:var(--cancel-text)}
+    .btn-cancel:hover{background:var(--bg-row-hover)}
+    .btn-save{padding:10px 24px;background:var(--accent);color:var(--accent-text);border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700}
+    .btn-save:hover{background:var(--accent-h)}
+    .btn-delete{padding:10px 24px;background:rgba(220,38,38,0.85);color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600}
+    .btn-delete:hover{background:#DC2626}
+    .delete-confirm-text{font-size:15px;color:var(--delete-text);line-height:1.6;margin-bottom:8px}
+    .delete-confirm-sub{font-size:13px;color:var(--text-muted)}
+
+    /* ── Loading ── */
+    .loading-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);gap:16px}
+    .loading-logo{font-size:40px;font-weight:200;letter-spacing:12px;color:var(--text-header);font-style:italic}
+    .loading-spinner{width:32px;height:32px;border:2px solid color-mix(in srgb, var(--accent) 20%, transparent);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+    .loading-text{font-size:12px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ── Nav ── */
+    .jj-nav{background:var(--bg-card);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;transition:background .3s}
+    .jj-nav-link{padding:11px 20px;font-size:13px;font-weight:600;color:var(--text-muted);text-decoration:none;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;display:block}
+    .jj-nav-link:hover{color:var(--accent)}
+    .jj-nav-link.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+    /* ── Mobile ── */
+    @media(max-width:576px){
+      .jj-modal{border-radius:12px;padding:20px 16px}
+      .add-btn span{display:none}
+      tbody td{padding:8px}
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// ── Firebase ───────────────────────────────────────────────────
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyDa3kZz55KfGvJtrUlmOhg-9HOSvCDNjFQ",
+  authDomain:        "casamento-jj.firebaseapp.com",
+  databaseURL:       "https://casamento-jj-default-rtdb.firebaseio.com",
+  projectId:         "casamento-jj",
+  storageBucket:     "casamento-jj.firebasestorage.app",
+  messagingSenderId: "35657642946",
+  appId:             "1:35657642946:web:31f25ba40efaffbe9f1c5b"
+};
+
+firebase.initializeApp(FIREBASE_CONFIG);
+const ADMIN_UID  = '0XrGEivRvCbZVEfO2tQmGD712dl1';
+const GUESTS_REF = firebase.database().ref('convidados');
+const GROUPS_REF  = firebase.database().ref('grupos');
+
+// ── Constants ──────────────────────────────────────────────────
+const SEED_GROUPS = {
+  FJH:  { label: 'FAM. João H',  color: '#60A5FA', bg: 'rgba(96,165,250,0.12)'  },
+  FJG:  { label: 'FAM. Julia G', color: '#F472B6', bg: 'rgba(244,114,182,0.12)' },
+  AJH:  { label: 'AMG. João H',  color: '#818CF8', bg: 'rgba(129,140,248,0.12)' },
+  AJG:  { label: 'AMG. Julia G', color: '#C084FC', bg: 'rgba(192,132,252,0.12)' },
+  ADJM: { label: 'JD Maringá',   color: '#34D399', bg: 'rgba(52,211,153,0.12)'  },
+  ADJN: { label: 'JD Nordeste',  color: '#2DD4BF', bg: 'rgba(45,212,191,0.12)'  },
+};
+
+const COLOR_OPTIONS = [
+  { color: '#60A5FA', bg: 'rgba(96,165,250,0.15)'   },
+  { color: '#F472B6', bg: 'rgba(244,114,182,0.15)'  },
+  { color: '#818CF8', bg: 'rgba(129,140,248,0.15)'  },
+  { color: '#C084FC', bg: 'rgba(192,132,252,0.15)'  },
+  { color: '#FBB040', bg: 'rgba(251,176,64,0.15)'   },
+  { color: '#34D399', bg: 'rgba(52,211,153,0.15)'   },
+  { color: '#2DD4BF', bg: 'rgba(45,212,191,0.15)'   },
+  { color: '#F87171', bg: 'rgba(248,113,113,0.15)'  },
+  { color: '#FB923C', bg: 'rgba(251,146,60,0.15)'   },
+  { color: '#A78BFA', bg: 'rgba(167,139,250,0.15)'  },
+];
+const STATUS_CYCLE = ['invited','confirmed','declined','excluded'];
+const STATUS_META = {
+  invited:   { label: 'Pendente',     cls: 's-invited'   },
+  confirmed: { label: 'Confirmado',   cls: 's-confirmed'  },
+  declined:  { label: 'Recusou',      cls: 's-declined'   },
+  excluded:  { label: 'Não convidar', cls: 's-excluded'   },
+};
+const SEED = [
+  {n:'Abner Souza',g:'ADJM',note:'',kids:[]},
+  {n:'Adriana Lopes',g:'ADJN',note:'',kids:[]},
+  {n:'Adriano Acaitano',g:'FJG',note:'',kids:[]},
+  {n:'Aleandres Teodoro',g:'FJG',note:'',kids:[]},
+  {n:'Alexandre Romão',g:'FJG',note:'',kids:[]},
+  {n:'Alexandre Shell',g:'FJH',note:'',kids:[]},
+  {n:'Alexsandra Romão',g:'FJG',note:'',kids:[]},
+  {n:'Alexsandra Santos',g:'ADJN',note:'',kids:[]},
+  {n:'Aline Souza',g:'ADJM',note:'',kids:['Nicolas Souza']},
+  {n:'Amália Inácio',g:'ADJN',note:'',kids:[]},
+  {n:'Amélia Mór',g:'FJH',note:'',kids:[]},
+  {n:'Ana Carol Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Ana Cristina',g:'ADJM',note:'',kids:[]},
+  {n:'Ana Gonçalves',g:'FJH',note:'mãe da Julia',kids:[]},
+  {n:'Ana Luiza',g:'FJH',note:'',kids:[]},
+  {n:'Ana Vitoria Inácio',g:'ADJN',note:'',kids:[]},
+  {n:'André Lopes',g:'ADJN',note:'',kids:[]},
+  {n:'André Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Andrea Romão',g:'FJG',note:'',kids:[]},
+  {n:'Angelina Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Antônio Zalunche',g:'FJG',note:'',kids:[]},
+  {n:'Audelice Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Augusto Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Aurecy Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Barbara Romão',g:'FJG',note:'',kids:[]},
+  {n:'Beatriz Andrade',g:'FJG',note:'',kids:[]},
+  {n:'Beatriz Romão',g:'FJG',note:'',kids:[]},
+  {n:'Bianca Fagioli',g:'FJG',note:'mulher do Maycon',kids:[]},
+  {n:'Bruna Cristine Lopes',g:'ADJN',note:'',kids:[]},
+  {n:'Bruna Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Bruna Marinho',g:'FJG',note:'esposa do André',kids:[]},
+  {n:'Bruno Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Bruno Romão',g:'FJG',note:'',kids:[]},
+  {n:'Caio Lopes',g:'ADJN',note:'filho do Will',kids:[]},
+  {n:'Camila Guimarães',g:'FJG',note:'Leandro',kids:[]},
+  {n:'Camila Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Carla Candido',g:'ADJN',note:'',kids:[]},
+  {n:'Carol Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Carol Moraga',g:'ADJN',note:'',kids:[]},
+  {n:'Carol Quirino',g:'FJH',note:'',kids:[]},
+  {n:'Cesar Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'César Macedo',g:'FJG',note:'',kids:[]},
+  {n:'Claudete Sales',g:'AJH',note:'Pitoco',kids:[]},
+  {n:'Cleide Vataru',g:'ADJN',note:'',kids:[]},
+  {n:'Daiane Dutra',g:'ADJN',note:'',kids:[]},
+  {n:'Dani Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Daniel Mór',g:'FJH',note:'',kids:['Miguel (9 anos)']},
+  {n:'Débora Frenhan',g:'ADJN',note:'',kids:[]},
+  {n:'Dede',g:'FJH',note:'mulher do Daniel',kids:['Henrico (3 anos)']},
+  {n:'Deva Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Douglas Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Edivaldo Sales',g:'AJH',note:'Pitoco',kids:[]},
+  {n:'Eduardo Pimentel',g:'AJH',note:'',kids:[]},
+  {n:'Eduardo Romão',g:'FJG',note:'',kids:[]},
+  {n:'Elayne Lopes',g:'ADJN',note:'',kids:[]},
+  {n:'Erika Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Estefany Romão',g:'FJG',note:'',kids:[]},
+  {n:'Ester Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Fabiana Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Fábio Pereira',g:'ADJM',note:'',kids:[]},
+  {n:'Fernando',g:'FJH',note:'marido da Ana Luiza',kids:[]},
+  {n:'Fia Nascimento',g:'FJH',note:'',kids:[]},
+  {n:'Gabriel Azevedo',g:'AJH',note:'',kids:[]},
+  {n:'Gabriel Candido',g:'ADJN',note:'filho do Ildo',kids:[]},
+  {n:'Gabriel Lopes',g:'ADJN',note:'filho do Will',kids:[]},
+  {n:'Gabriela Lopes',g:'ADJN',note:'',kids:[]},
+  {n:'Gabriela Marinho Cavalcante',g:'FJG',note:'',kids:[]},
+  {n:'Giovane Salles',g:'AJH',note:'Pitoco',kids:[]},
+  {n:'Giovanna Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Gisele Tavares',g:'AJG',note:'',kids:[]},
+  {n:'Guilherme',g:'AJG',note:'namorado da Gisele',kids:[]},
+  {n:'Guilherme Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Guilherme Romão',g:'FJG',note:'',kids:[]},
+  {n:'Gustavo Zalunche',g:'FJG',note:'',kids:[]},
+  {n:'Heloísa Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Idael Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Idenor Guimarães Júnior',g:'FJG',note:'',kids:[]},
+  {n:'Ildo Candido',g:'ADJN',note:'',kids:[]},
+  {n:'Inês Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Íris Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Isabela Eutran',g:'ADJN',note:'',kids:[]},
+  {n:'Isabela Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Jaqueline Teodoro',g:'FJG',note:'',kids:[]},
+  {n:'Jennifer Vieira',g:'AJH',note:'Duds',kids:[]},
+  {n:'João Inácio',g:'ADJN',note:'',kids:[]},
+  {n:'João Marcos Brito',g:'ADJN',note:'',kids:[]},
+  {n:'João Pedro',g:'FJH',note:'Ana Luiza',kids:[]},
+  {n:'João Vitor',g:'AJH',note:'Aphro',kids:[]},
+  {n:'Jonas Lopes',g:'ADJN',note:'',kids:[]},
+  {n:'Josue Alves',g:'ADJN',note:'Nicolle',kids:[]},
+  {n:'Josué Marinho',g:'FJG',note:'',kids:[]},
+  {n:'Joyce Venancio',g:'FJG',note:'Natalia',kids:[]},
+  {n:'Júlia Nascimento',g:'FJH',note:'',kids:[]},
+  {n:'Juliana Acaitano',g:'FJG',note:'',kids:[]},
+  {n:'Juliana Macedo',g:'FJG',note:'',kids:['Heitor (4 anos)']},
+  {n:'Júlio Mór',g:'FJH',note:'',kids:[]},
+  {n:'Kaio Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Kleber Guimarães',g:'FJG',note:'',kids:['Nathan (7 anos)','Susana (5 anos)']},
+  {n:'Larissa Costa',g:'AJG',note:'',kids:[]},
+  {n:'Larissa Teodoro',g:'FJG',note:'Ale Teodoro',kids:[]},
+  {n:'Leandro Dutra',g:'ADJN',note:'',kids:['Isabela (4 anos)']},
+  {n:'Leandro Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Leonardo Santos',g:'ADJN',note:'filho do pastor',kids:[]},
+  {n:'Leônidas Cavalcante',g:'FJG',note:'',kids:[]},
+  {n:'Leticia Miranda',g:'FJG',note:'',kids:[]},
+  {n:'Livia Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Luana Miranda Teodoro',g:'FJG',note:'esposa do Ricardo',kids:[]},
+  {n:'Luana Zalunche',g:'FJG',note:'',kids:['Murilo Romão (7 anos)']},
+  {n:'Lucas Romão',g:'FJG',note:'',kids:[]},
+  {n:'Lucas Soares',g:'AJH',note:'Luquinhas',kids:[]},
+  {n:'Lucelena Souza',g:'FJH',note:'',kids:[]},
+  {n:'Luiza Romão',g:'FJG',note:'',kids:[]},
+  {n:'Manuela Gonçalves',g:'FJH',note:'',kids:[]},
+  {n:'Manuela Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Marcelo Souza',g:'FJH',note:'',kids:[]},
+  {n:'Marcelo Teodoro',g:'FJG',note:'',kids:[]},
+  {n:'Marcos Romão',g:'FJG',note:'',kids:[]},
+  {n:'Maria da Paz Lopes',g:'ADJN',note:'',kids:[]},
+  {n:'Maria Eduarda Brito',g:'ADJN',note:'',kids:[]},
+  {n:'Maria Onilia',g:'FJG',note:'não convidar',kids:[],status:'excluded'},
+  {n:'Mariana Acaitano',g:'FJG',note:'',kids:[]},
+  {n:'Marlene Romão',g:'FJG',note:'',kids:[]},
+  {n:'Mateus Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Matheus Tomazi',g:'AJH',note:'',kids:[]},
+  {n:'Matheus William',g:'AJH',note:'Mac',kids:[]},
+  {n:'Maycon Romão',g:'FJG',note:'',kids:[]},
+  {n:'Michele Inácio',g:'ADJN',note:'',kids:[]},
+  {n:'Michele Romão',g:'FJG',note:'Rafael',kids:[]},
+  {n:'Michele Teodoro',g:'FJG',note:'',kids:[]},
+  {n:'Natália Acaitano',g:'FJG',note:'',kids:[]},
+  {n:'Natalia Araújo',g:'ADJN',note:'',kids:[]},
+  {n:'Natyelly Romão',g:'FJG',note:'',kids:[]},
+  {n:'Nicolas Lopes',g:'ADJN',note:'',kids:[]},
+  {n:'Nicole Alves',g:'ADJN',note:'',kids:[]},
+  {n:'Odair Nascimento',g:'FJH',note:'',kids:[]},
+  {n:'Olinda Romão',g:'FJG',note:'',kids:[]},
+  {n:'Óseias Lopes',g:'ADJN',note:'',kids:[]},
+  {n:'Osias Romão',g:'FJG',note:'não convidar',kids:[],status:'excluded'},
+  {n:'Pedro Eutran',g:'ADJN',note:'',kids:[]},
+  {n:'Pedro Nascimento',g:'FJH',note:'',kids:[]},
+  {n:'Rafael Romão',g:'FJG',note:'',kids:[]},
+  {n:'Rafael Serafim',g:'ADJN',note:'',kids:[]},
+  {n:'Raissa Lopes',g:'ADJN',note:'',kids:[]},
+  {n:'Raquel Lucio',g:'ADJN',note:'',kids:[]},
+  {n:'Renata Gonçalves',g:'FJH',note:'',kids:[]},
+  {n:'Ricardo Miranda Teodoro',g:'FJG',note:'',kids:[]},
+  {n:'Ricardo Santos',g:'ADJN',note:'',kids:[]},
+  {n:'Rita de Cássia Mór',g:'FJH',note:'',kids:[]},
+  {n:'Rosana Zalunche',g:'FJG',note:'',kids:[]},
+  {n:'Sabrina Zalunche',g:'FJG',note:'não convidar',kids:[],status:'excluded'},
+  {n:'Simone Brito',g:'ADJN',note:'',kids:[]},
+  {n:'Sirlei Alves',g:'ADJN',note:'Nicolle',kids:[]},
+  {n:'Solange Guimarães',g:'FJG',note:'',kids:[]},
+  {n:'Suzane Romão',g:'FJG',note:'Bruno',kids:[]},
+  {n:'Tereza Mór',g:'FJH',note:'',kids:[]},
+  {n:'Thawany Duarte',g:'AJG',note:'',kids:[]},
+  {n:'Thiago Florêncio',g:'ADJN',note:'',kids:[]},
+  {n:'Tiago Souza',g:'FJH',note:'',kids:[]},
+  {n:'Valeria Guimarães',g:'FJG',note:'atenção: Yohanna está com 10 anos',kids:['Yohanna Guimarães (10 anos)']},
+  {n:'Valquiria Guimarães',g:'FJG',note:'',kids:['Kauan Guimarães']},
+  {n:'Vataro Itu',g:'ADJN',note:'',kids:[]},
+  {n:'Vitinho Dutra',g:'ADJN',note:'',kids:[]},
+  {n:'Vitor Romão',g:'FJG',note:'',kids:[]},
+  {n:'Wellington Lopes',g:'ADJN',note:'',kids:[]},
+  {n:'Wellington Pereira',g:'ADJM',note:'',kids:[]},
+  {n:'William Lopes',g:'ADJN',note:'',kids:[]},
+  {n:'Yuri Mello',g:'AJH',note:'',kids:[]},
+  {n:'Marcos Aurélio',g:'FJG',note:'',kids:[]},
+];
+
+function buildInitial() {
+  return SEED.map((s, i) => ({ id: i + 1, name: s.n, group: s.g, note: s.note, kids: s.kids || [], status: s.status || 'invited' }));
+}
+
+// ── Countdown ────────────────────────────────────────────────
+function useCountdown(target) {
+  const [diff, setDiff] = useState(() => target - Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setDiff(target - Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [target]);
+  const total = Math.max(0, diff);
+  return {
+    d: Math.floor(total / 86400000),
+    h: Math.floor(total / 3600000) % 24,
+    m: Math.floor(total / 60000) % 60,
+    s: Math.floor(total / 1000) % 60,
+  };
+}
+
+function Countdown() {
+  const { d, h, m, s } = useCountdown(new Date('2027-11-20T18:00:00').getTime());
+  const pad = n => String(n).padStart(2, '0');
+  return (
+    <div className="countdown">
+      <div className="cd-block"><div className="cd-num">{d}</div><div className="cd-label">dias</div></div>
+      <div className="cd-sep">:</div>
+      <div className="cd-block"><div className="cd-num">{pad(h)}</div><div className="cd-label">horas</div></div>
+      <div className="cd-sep">:</div>
+      <div className="cd-block"><div className="cd-num">{pad(m)}</div><div className="cd-label">min</div></div>
+      <div className="cd-sep">:</div>
+      <div className="cd-block"><div className="cd-num">{pad(s)}</div><div className="cd-label">seg</div></div>
+    </div>
+  );
+}
+
+// ── GroupBadge ────────────────────────────────────────────────
+function GroupBadge({ group, groups }) {
+  const g = (groups || {})[group] || { label: group, color: '#888', bg: 'rgba(136,136,136,0.12)' };
+  return <span className="group-badge" style={{ color: g.color, background: g.bg }}>{g.label || group}</span>;
+}
+
+// ── StatusPill ────────────────────────────────────────────────
+function StatusPill({ status, onChange, readOnly }) {
+  const m = STATUS_META[status] || STATUS_META.invited;
+  return (
+    <span className={`status-pill ${m.cls}`}
+      onClick={readOnly ? undefined : () => {
+        const idx = STATUS_CYCLE.indexOf(status);
+        onChange(STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length]);
+      }}
+      style={readOnly ? {cursor:'default'} : {}}
+      title={readOnly ? '' : 'Toque para mudar'}>
+      {m.label}
+    </span>
+  );
+}
+
+// ── GuestModal ────────────────────────────────────────────────
+function GuestModal({ initial, onSave, onClose, groups }) {
+  const isNew = !initial;
+  const firstGroup = Object.keys(groups || {})[0] || 'FJH';
+  const [form, setForm] = useState(
+    initial ? { ...initial, kids: [...(initial.kids || [])] }
+            : { name: '', group: firstGroup, note: '', kids: [], status: 'invited' }
+  );
+  const [kidInput, setKidInput] = useState('');
+  const kidRef = useRef();
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const addKid = () => {
+    const v = kidInput.trim();
+    if (!v) return;
+    setForm(f => ({ ...f, kids: [...(f.kids || []), v] }));
+    setKidInput('');
+    kidRef.current && kidRef.current.focus();
+  };
+  const removeKid = i => setForm(f => ({ ...f, kids: (f.kids || []).filter((_, x) => x !== i) }));
+  const save = () => { if (form.name.trim()) onSave(form); };
+
+  return (
+    <div className="jj-overlay" onClick={onClose}>
+      <div className="jj-modal" onClick={e => e.stopPropagation()}>
+        <div className="jj-modal-title">{isNew ? '+ Novo Convidado' : 'Editar Convidado'}</div>
+
+        <div className="jj-form-group">
+          <label className="jj-form-label">Nome *</label>
+          <input className="jj-form-input" value={form.name} onChange={e => set('name', e.target.value)}
+            placeholder="Nome completo" autoFocus onKeyDown={e => e.key === 'Enter' && save()} />
+        </div>
+
+        <div className="row g-2 mb-2">
+          <div className="col-12 col-sm-6">
+            <div className="jj-form-group mb-0">
+              <label className="jj-form-label">Grupo</label>
+              <select className="jj-form-select" value={form.group} onChange={e => set('group', e.target.value)}>
+                {Object.entries(groups || {}).map(([k, v]) => <option key={k} value={k}>{k} — {v.label}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="col-12 col-sm-6">
+            <div className="jj-form-group mb-0">
+              <label className="jj-form-label">Status</label>
+              <select className="jj-form-select" value={form.status} onChange={e => set('status', e.target.value)}>
+                {Object.entries(STATUS_META).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="jj-form-group">
+          <label className="jj-form-label">Observação</label>
+          <input className="jj-form-input" value={form.note} onChange={e => set('note', e.target.value)}
+            placeholder="ex: cônjuge do Fulano..." />
+        </div>
+
+        <div className="jj-form-group">
+          <label className="jj-form-label">Crianças</label>
+          {(form.kids || []).length > 0 && (
+            <div className="children-tags">
+              {(form.kids || []).map((k, i) => (
+                <div key={i} className="child-tag">{k} <button onClick={() => removeKid(i)}>×</button></div>
+              ))}
+            </div>
+          )}
+          <div className="child-input-row">
+            <input ref={kidRef} className="jj-form-input" value={kidInput} onChange={e => setKidInput(e.target.value)}
+              placeholder="Nome da criança" onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addKid())} />
+            <button className="child-add-btn" onClick={addKid}>+ Add</button>
+          </div>
+        </div>
+
+        <div className="jj-modal-actions">
+          <button className="btn-cancel" onClick={onClose}>Cancelar</button>
+          <button className="btn-save" onClick={save}>{isNew ? 'Adicionar' : 'Salvar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── DeleteModal ───────────────────────────────────────────────
+function DeleteModal({ guest, onConfirm, onClose }) {
+  return (
+    <div className="jj-overlay" onClick={onClose}>
+      <div className="jj-modal" onClick={e => e.stopPropagation()}>
+        <div className="jj-modal-title">Remover convidado?</div>
+        <p className="delete-confirm-text">Tem certeza que quer remover <strong>{guest.name}</strong>?</p>
+        <p className="delete-confirm-sub">Essa ação remove para os dois.</p>
+        <div className="jj-modal-actions">
+          <button className="btn-cancel" onClick={onClose}>Cancelar</button>
+          <button className="btn-delete" onClick={onConfirm}>Sim, remover</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── GroupsModal ───────────────────────────────────────────────
+function GroupsModal({ groups, guests, onClose }) {
+  const [editingKey, setEditingKey] = useState(null);
+  const [editLabel, setEditLabel]   = useState('');
+  const [newCode, setNewCode]       = useState('');
+  const [newLabel, setNewLabel]     = useState('');
+  const [newColor, setNewColor]     = useState(COLOR_OPTIONS[0]);
+  const [error, setError]           = useState('');
+
+  const startEdit = (key) => { setEditingKey(key); setEditLabel(groups[key].label); };
+  const saveEdit  = () => {
+    if (!editLabel.trim()) return;
+    GROUPS_REF.child(editingKey).update({ label: editLabel.trim() });
+    setEditingKey(null);
+  };
+
+  const addGroup = () => {
+    const code = newCode.trim().toUpperCase().replace(/\s/g,'');
+    const label = newLabel.trim();
+    if (!code) { setError('Informe um código para o grupo.'); return; }
+    if (!label) { setError('Informe um nome para o grupo.'); return; }
+    if (groups[code]) { setError(`O código "${code}" já existe.`); return; }
+    GROUPS_REF.child(code).set({ label, color: newColor.color, bg: newColor.bg });
+    setNewCode(''); setNewLabel(''); setError('');
+  };
+
+  const deleteGroup = (key) => {
+    const inUse = guests.some(g => g.group === key);
+    if (inUse) { alert(`O grupo "${groups[key].label}" tem convidados. Mova-os antes de excluir.`); return; }
+    if (!window.confirm(`Excluir o grupo "${groups[key].label}"?`)) return;
+    GROUPS_REF.child(key).remove();
+  };
+
+  return (
+    <div className="jj-overlay" onClick={onClose}>
+      <div className="jj-modal" style={{maxWidth:520}} onClick={e => e.stopPropagation()}>
+        <div className="jj-modal-title">⚙️ Gerenciar Grupos</div>
+
+        {/* Lista de grupos existentes */}
+        <div style={{marginBottom:20}}>
+          {Object.entries(groups).map(([key, g]) => (
+            <div key={key} style={{display:'flex',alignItems:'center',gap:8,padding:'8px 0',borderBottom:'1px solid var(--border)'}}>
+              <span className="group-badge" style={{color:g.color,background:g.bg,flexShrink:0,minWidth:48,textAlign:'center'}}>{key}</span>
+              {editingKey === key ? (
+                <>
+                  <input className="jj-form-input" style={{flex:1,padding:'6px 10px'}}
+                    value={editLabel} onChange={e => setEditLabel(e.target.value)}
+                    onKeyDown={e => { if(e.key==='Enter') saveEdit(); if(e.key==='Escape') setEditingKey(null); }}
+                    autoFocus />
+                  <button className="btn-save" style={{padding:'6px 12px',fontSize:12}} onClick={saveEdit}>✓</button>
+                  <button className="btn-cancel" style={{padding:'6px 10px',fontSize:12}} onClick={() => setEditingKey(null)}>✕</button>
+                </>
+              ) : (
+                <>
+                  <span style={{flex:1,color:'var(--text)',fontSize:14}}>{g.label}</span>
+                  <button className="action-btn" title="Renomear" onClick={() => startEdit(key)}>✏️</button>
+                  <button className="action-btn del" title="Excluir" onClick={() => deleteGroup(key)}>🗑️</button>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Adicionar novo grupo */}
+        <div style={{background:'var(--bg)',borderRadius:10,padding:'16px',border:'1px solid var(--border)'}}>
+          <div style={{fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:1.5,color:'var(--accent)',marginBottom:12}}>
+            + Novo Grupo
+          </div>
+          <div className="row g-2 mb-2">
+            <div className="col-4">
+              <label className="jj-form-label">Código</label>
+              <input className="jj-form-input" value={newCode} onChange={e => setNewCode(e.target.value)}
+                placeholder="ex: FAM1" maxLength={6} style={{textTransform:'uppercase'}} />
+            </div>
+            <div className="col-8">
+              <label className="jj-form-label">Nome do Grupo</label>
+              <input className="jj-form-input" value={newLabel} onChange={e => setNewLabel(e.target.value)}
+                placeholder="ex: Amigos do Trabalho"
+                onKeyDown={e => e.key === 'Enter' && addGroup()} />
+            </div>
+          </div>
+          <label className="jj-form-label">Cor</label>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
+            {COLOR_OPTIONS.map((c, i) => (
+              <div key={i} onClick={() => setNewColor(c)}
+                style={{width:28,height:28,borderRadius:'50%',background:c.color,cursor:'pointer',
+                  border: newColor.color===c.color ? '3px solid var(--text)' : '3px solid transparent',
+                  transition:'border .15s'}} />
+            ))}
+          </div>
+          {error && <div style={{color:'#F87171',fontSize:12,marginBottom:8}}>{error}</div>}
+          <button className="btn-save" style={{width:'100%'}} onClick={addGroup}>Adicionar Grupo</button>
+        </div>
+
+        <div className="jj-modal-actions">
+          <button className="btn-cancel" onClick={onClose}>Fechar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── LoginGate ─────────────────────────────────────────────────
+function LoginGate() {
+  const [email, setEmail] = useState('');
+  const [pw, setPw]       = useState('');
+  const [err, setErr]     = useState('');
+  const [busy, setBusy]   = useState(false);
+
+  const loginAdmin = () => {
+    setBusy(true); setErr('');
+    firebase.auth().signInWithEmailAndPassword(email, pw)
+      .catch(() => { setErr('E-mail ou senha incorretos.'); setBusy(false); });
+  };
+
+  return (
+    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'var(--bg)',padding:'24px',gap:28}}>
+      <div style={{textAlign:'center'}}>
+        <div style={{fontSize:13,letterSpacing:8,color:'var(--accent)',opacity:.8,marginBottom:12}}>✦ ✦ ✦</div>
+        <div style={{fontSize:'clamp(40px,10vw,64px)',fontWeight:200,letterSpacing:'clamp(8px,2vw,16px)',color:'var(--text-header)',fontStyle:'italic'}}>J &amp; J</div>
+        <div style={{display:'flex',alignItems:'center',gap:16,justifyContent:'center',margin:'10px 0'}}>
+          <div style={{flex:1,maxWidth:80,height:1,background:'linear-gradient(90deg,transparent,rgba(201,168,76,.6))'}} />
+          <span style={{color:'var(--accent)',fontSize:10}}>◆</span>
+          <div style={{flex:1,maxWidth:80,height:1,background:'linear-gradient(90deg,rgba(201,168,76,.6),transparent)'}} />
+        </div>
+        <div style={{fontSize:11,letterSpacing:3,color:'var(--text-muted)',textTransform:'uppercase'}}>20 de Novembro de 2027</div>
+      </div>
+      <div style={{background:'var(--bg-card)',border:'1px solid var(--border-modal)',borderRadius:16,padding:'28px 24px',width:'100%',maxWidth:320,boxShadow:'var(--modal-shadow)'}}>
+        <div style={{marginBottom:10}}>
+          <label style={{display:'block',fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1.5,color:'var(--text-label)',marginBottom:5}}>E-mail</label>
+          <input className="jj-form-input" type="email" autoFocus value={email} onChange={e => setEmail(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && loginAdmin()} />
+        </div>
+        <div style={{marginBottom:16}}>
+          <label style={{display:'block',fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1.5,color:'var(--text-label)',marginBottom:5}}>Senha</label>
+          <input className="jj-form-input" type="password" value={pw}
+            onChange={e => setPw(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && loginAdmin()} />
+        </div>
+        {err && <p style={{color:'#EF4444',fontSize:12,margin:'0 0 12px'}}>{err}</p>}
+        <button style={{width:'100%',padding:'12px',background:'var(--accent)',color:'var(--accent-text)',border:'none',borderRadius:8,cursor:'pointer',fontSize:14,fontWeight:700,marginBottom:12,fontFamily:'inherit'}}
+          onClick={loginAdmin} disabled={busy}>
+          {busy ? 'Entrando...' : 'Entrar'}
+        </button>
+        <div style={{textAlign:'center'}}>
+          <button style={{background:'none',border:'none',cursor:'pointer',fontSize:12,color:'var(--text-muted)',fontFamily:'inherit',padding:0}}
+            onClick={() => firebase.auth().signInAnonymously()}>
+            Continuar como convidado →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── MAIN APP ──────────────────────────────────────────────────
+function App() {
+  const [theme,       setTheme]       = useState(() => localStorage.getItem('jj-theme') || 'dark');
+  const [guests,      setGuests]      = useState([]);
+  const [groups,      setGroups]      = useState({});
+  const [loaded,      setLoaded]      = useState(false);
+  const [online,      setOnline]      = useState(false);
+  const [currentUser, setCurrentUser] = useState(undefined); // undefined=carregando, null=sem user, obj=autenticado
+  const [isAdmin,     setIsAdmin]     = useState(false);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('jj-theme', theme);
+  }, [theme]);
+  const [search, setSearch] = useState('');
+  const [groupFilter, setGroupFilter] = useState('ALL');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [showExcluded, setShowExcluded] = useState(false);
+  const [sortKey, setSortKey] = useState('name');
+  const [sortDir, setSortDir] = useState(1);
+  const [modal, setModal] = useState(null);
+
+  useEffect(() => {
+    let attached = false;
+    const unsubAuth = firebase.auth().onAuthStateChanged(user => {
+      setCurrentUser(user);
+      if (!user) return;
+      setIsAdmin(user.uid === ADMIN_UID);
+      if (attached) return;
+      attached = true;
+      GUESTS_REF.on('value', snap => {
+        const data = snap.val();
+        if (data) {
+          setGuests(Object.values(data).map(g => ({ ...g, kids: g.kids || [] })).sort((a, b) => (a.id || 0) - (b.id || 0)));
+        } else {
+          // Apenas o admin deve tentar inicializar o banco
+          if (user.uid === ADMIN_UID) {
+            const initial = buildInitial();
+            const obj = {};
+            initial.forEach(g => { obj[g.id] = g; });
+            GUESTS_REF.set(obj).catch(console.error);
+          }
+        }
+        setLoaded(true);
+      }, err => {
+        console.error("Erro Firebase Convidados:", err);
+        alert("Erro ao conectar com o banco de dados (Convidados). Você tem permissão?");
+        setLoaded(true);
+      });
+      GROUPS_REF.on('value', snap => {
+        const data = snap.val();
+        if (data) {
+          setGroups(data);
+        } else {
+          if (user.uid === ADMIN_UID) {
+            GROUPS_REF.set(SEED_GROUPS).catch(console.error);
+          }
+        }
+      }, err => {
+        console.error("Erro Firebase Grupos:", err);
+      });
+      firebase.database().ref('.info/connected').on('value', snap => setOnline(!!snap.val()));
+    });
+    return () => {
+      unsubAuth();
+      GUESTS_REF.off();
+      GROUPS_REF.off();
+      firebase.database().ref('.info/connected').off();
+    };
+  }, []);
+
+  if (currentUser === undefined) return (
+    <div className="loading-screen">
+      <div className="loading-logo">J &amp; J</div>
+      <div className="loading-spinner" />
+    </div>
+  );
+
+  if (currentUser === null) return <LoginGate />;
+
+  if (!loaded) return (
+    <div className="loading-screen">
+      <div className="loading-logo">J &amp; J</div>
+      <div className="loading-spinner" />
+      <div className="loading-text">conectando...</div>
+    </div>
+  );
+
+  const allGroups = Object.keys(groups);
+
+  const stats = {
+    total:     guests.filter(g => g.status !== 'excluded').length,
+    confirmed: guests.filter(g => g.status === 'confirmed').length,
+    pending:   guests.filter(g => g.status === 'invited').length,
+    excluded:  guests.filter(g => g.status === 'excluded').length,
+    kids:      guests.reduce((a, g) => a + (g.kids || []).length, 0),
+  };
+
+  const filtered = (() => {
+    let list = [...guests];
+    if (!showExcluded) list = list.filter(g => g.status !== 'excluded');
+    if (groupFilter !== 'ALL') list = list.filter(g => g.group === groupFilter);
+    if (statusFilter !== 'ALL') list = list.filter(g => g.status === statusFilter);
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter(g =>
+        g.name.toLowerCase().includes(q) ||
+        (g.note || '').toLowerCase().includes(q) ||
+        (g.kids || []).some(k => k.toLowerCase().includes(q))
+      );
+    }
+    list = list.filter(g => g && g.name);
+    list.sort((a, b) => {
+      const va = sortKey === 'group' ? (a.group || '') : (a.name || '').toLowerCase();
+      const vb = sortKey === 'group' ? (b.group || '') : (b.name || '').toLowerCase();
+      return va < vb ? -sortDir : va > vb ? sortDir : 0;
+    });
+    return list;
+  })();
+
+  const toggleSort = key => { if (sortKey === key) setSortDir(d => -d); else { setSortKey(key); setSortDir(1); } };
+  const updateStatus = (id, status) => GUESTS_REF.child(String(id)).update({ status });
+  const saveGuest = form => {
+    if (modal.type === 'add') {
+      const id = Date.now();
+      GUESTS_REF.child(String(id)).set({ ...form, id });
+    } else {
+      GUESTS_REF.child(String(modal.guest.id)).set({ ...form, id: modal.guest.id });
+    }
+    setModal(null);
+  };
+  const deleteGuest = id => { GUESTS_REF.child(String(id)).remove(); setModal(null); };
+  const resetData = () => {
+    if (!window.confirm('Isso vai restaurar a lista original para os dois. Tem certeza?')) return;
+    const initial = buildInitial();
+    const obj = {};
+    initial.forEach(g => { obj[g.id] = g; });
+    GUESTS_REF.set(obj);
+  };
+  const exportCSV = () => {
+    const rows = [['ID','Nome','Grupo','Status','Observação','Crianças']];
+    guests.forEach(g => rows.push([g.id, g.name, g.group, STATUS_META[g.status]?.label || g.status, g.note || '', (g.kids || []).join(' | ')]));
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
+    a.download = 'lista-convidados-JJ.csv';
+    a.click();
+  };
+
+  const arr = sortDir === 1 ? ' ↑' : ' ↓';
+
+  return (
+    <>
+      {/* HEADER */}
+      <header className="jj-header">
+        <button className="theme-btn" onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+          title={theme === 'dark' ? 'Tema claro' : 'Tema escuro'}>
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
+        <div className={`conn-badge ${online ? 'online' : 'offline'}`}>
+          <div className="conn-dot" />
+          {online ? 'Ao vivo' : 'Offline'}
+        </div>
+        <div className="jj-header-inner">
+          <div className="jj-header-ornament">✦ ✦ ✦</div>
+          <div className="jj-header-title">J &amp; J</div>
+          <div className="jj-header-divider"><span className="jj-header-diamond">◆</span></div>
+          <div className="jj-header-subtitle">20 de Novembro de 2027 — Lista de Convidados</div>
+          <Countdown />
+        </div>
+      </header>
+
+      <nav className="jj-nav">
+        <a href="./index.html"        className="jj-nav-link active">👥 Convidados</a>
+        {isAdmin && <a href="./fornecedores.html" className="jj-nav-link">🏪 Fornecedores</a>}
+        {isAdmin && <a href="./gastos.html"  className="jj-nav-link">💰 Gastos</a>}
+        {isAdmin && <a href="./extrato.html" className="jj-nav-link">💳 Extrato</a>}
+        <a href="./roteiro.html" className="jj-nav-link">📋 Roteiro</a>
+        <button className="jj-nav-link" style={{marginLeft:'auto',border:'none',background:'none',cursor:'pointer'}}
+          onClick={() => firebase.auth().signOut()}>
+          {isAdmin ? '🔓 Sair' : '🔑 Admin'}
+        </button>
+      </nav>
+
+      <div className="container-fluid px-3 px-md-4" style={{maxWidth:1280,margin:'0 auto',paddingTop:28,paddingBottom:40}}>
+
+        {/* STATS — 2 colunas no mobile, 3 no tablet, 5 no desktop */}
+        <div className="row row-cols-2 row-cols-md-3 row-cols-xl-5 g-2 mb-3">
+          <div className="col">
+            <div className={`stat-card total${statusFilter==='ALL'&&groupFilter==='ALL'?' active-filter':''}`}
+              onClick={() => { setStatusFilter('ALL'); setGroupFilter('ALL'); setShowExcluded(false); }}>
+              <div className="stat-number">{stats.total}</div>
+              <div className="stat-label">Adultos</div>
+            </div>
+          </div>
+          <div className="col">
+            <div className={`stat-card confirmed${statusFilter==='confirmed'?' active-filter':''}`}
+              onClick={() => setStatusFilter(s => s==='confirmed'?'ALL':'confirmed')}>
+              <div className="stat-number">{stats.confirmed}</div>
+              <div className="stat-label">Confirmados</div>
+            </div>
+          </div>
+          <div className="col">
+            <div className={`stat-card pending${statusFilter==='invited'?' active-filter':''}`}
+              onClick={() => setStatusFilter(s => s==='invited'?'ALL':'invited')}>
+              <div className="stat-number">{stats.pending}</div>
+              <div className="stat-label">Pendentes</div>
+            </div>
+          </div>
+          <div className="col">
+            <div className="stat-card children">
+              <div className="stat-number">{stats.kids}</div>
+              <div className="stat-label">Crianças</div>
+            </div>
+          </div>
+          <div className="col">
+            <div className={`stat-card excluded${statusFilter==='excluded'?' active-filter':''}`}
+              onClick={() => { setStatusFilter(s => s==='excluded'?'ALL':'excluded'); setShowExcluded(true); }}>
+              <div className="stat-number">{stats.excluded}</div>
+              <div className="stat-label">Não convidar</div>
+            </div>
+          </div>
+        </div>
+
+        {/* CONTROLS */}
+        <div className="d-flex flex-wrap gap-2 mb-2">
+          <div className="search-wrap">
+            <span className="search-icon">🔍</span>
+            <input className="search-input" placeholder="Buscar nome, nota ou criança..."
+              value={search} onChange={e => setSearch(e.target.value)} />
+          </div>
+          <button className="export-btn" onClick={exportCSV}>⬇ CSV</button>
+          {isAdmin && (
+            <button className="add-btn" onClick={() => setModal({ type:'add' })}>
+              ＋ <span>Adicionar</span>
+            </button>
+          )}
+        </div>
+
+        {/* GRUPO FILTERS */}
+        <div className="d-flex flex-wrap gap-2 align-items-center mb-3">
+          <span style={{fontSize:10,color:'#5B5040',textTransform:'uppercase',letterSpacing:1}}>Grupo:</span>
+          <button className={`filter-chip${groupFilter==='ALL'?' active':''}`} onClick={() => setGroupFilter('ALL')}>Todos</button>
+          {allGroups.map(g => (
+            <button key={g} className={`filter-chip${groupFilter===g?' active':''}`}
+              onClick={() => setGroupFilter(x => x===g?'ALL':g)}>
+              {g} <span style={{opacity:.5,fontSize:10}}>({guests.filter(x=>x.group===g&&x.status!=='excluded').length})</span>
+            </button>
+          ))}
+          {isAdmin && (
+            <button className="export-btn" style={{marginLeft:'auto'}} onClick={() => setModal({type:'groups'})} title="Gerenciar grupos">⚙️ Grupos</button>
+          )}
+          <div className="show-excluded-toggle" onClick={() => setShowExcluded(v => !v)}>
+            <div className={`toggle-switch${showExcluded?' on':''}`}><div className="toggle-knob"/></div>
+            <span className="d-none d-sm-inline">Não convidar</span>
+          </div>
+        </div>
+
+        {/* RESULTS BAR */}
+        <div className="results-bar">
+          <span>
+            {filtered.length === 0 ? 'Nenhum resultado' : `${filtered.length} ${filtered.length===1?'pessoa':'pessoas'}`}
+            {filtered.reduce((a,g)=>a+(g.kids||[]).length,0)>0 && ` + ${filtered.reduce((a,g)=>a+(g.kids||[]).length,0)} crianças`}
+          </span>
+          {isAdmin && (
+            <button onClick={resetData}
+              style={{background:'none',border:'none',cursor:'pointer',fontSize:11,color:'#C9A84C',textDecoration:'underline'}}>
+              ↺ Restaurar lista
+            </button>
+          )}
+        </div>
+
+        {/* TABLE — com scroll horizontal no mobile */}
+        <div className="table-wrap">
+          {filtered.length === 0 ? (
+            <div className="empty-state"><div className="empty-icon">💌</div><div>Nenhum convidado encontrado.</div></div>
+          ) : (
+            <div className="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th style={{width:36,textAlign:'center'}}>#</th>
+                    <th className={sortKey==='name'?'sort-active':''} onClick={() => toggleSort('name')}>
+                      Nome{sortKey==='name'?arr:''}
+                    </th>
+                    <th className={`d-none d-md-table-cell${sortKey==='group'?' sort-active':''}`}
+                      onClick={() => toggleSort('group')} style={{width:90}}>
+                      Grupo{sortKey==='group'?arr:''}
+                    </th>
+                    <th style={{width:120}}>Status</th>
+                    <th className="d-none d-lg-table-cell">Crianças / Obs.</th>
+                    {isAdmin && <th style={{width:76,textAlign:'center'}}>Ações</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((g, idx) => (
+                    <tr key={g.id} className={g.status==='excluded'?'is-excluded':''}>
+                      <td style={{textAlign:'center',color:'#C9A84C',fontSize:12,fontWeight:600}}>{idx+1}</td>
+                      <td>
+                        <div className="guest-name">{g.name}</div>
+                        {g.note && <div className="guest-note">{g.note}</div>}
+                        {/* no mobile, mostra grupo e kids embaixo do nome */}
+                        <div className="d-md-none mt-1">
+                          <GroupBadge group={g.group} groups={groups}/>
+                        </div>
+                        {(g.kids||[]).length > 0 && (
+                          <div className="d-lg-none mt-1">
+                            {(g.kids||[]).map((k,i) => <span key={i} className="kid-chip">👶 {k}</span>)}
+                          </div>
+                        )}
+                      </td>
+                      <td className="d-none d-md-table-cell"><GroupBadge group={g.group} groups={groups}/></td>
+                      <td><StatusPill status={g.status} readOnly={!isAdmin} onChange={st => updateStatus(g.id, st)}/></td>
+                      <td className="d-none d-lg-table-cell">
+                        {(g.kids||[]).map((k,i) => <span key={i} className="kid-chip">👶 {k}</span>)}
+                      </td>
+                      {isAdmin && (
+                        <td style={{textAlign:'center',whiteSpace:'nowrap'}}>
+                          <button className="action-btn" title="Editar" onClick={() => setModal({type:'edit',guest:g})}>✏️</button>
+                          <button className="action-btn del" title="Remover" onClick={() => setModal({type:'delete',guest:g})}>🗑️</button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* LEGEND */}
+        <div className="d-flex flex-wrap gap-2 mt-3">
+          {Object.entries(groups).map(([k,v]) => (
+            <span key={k} className="group-badge" style={{color:v.color,background:v.bg,padding:'4px 10px'}}>
+              <strong>{k}</strong> — {v.label}
+            </span>
+          ))}
+        </div>
+
+      </div>
+
+      {isAdmin && modal?.type==='add'    && <GuestModal groups={groups} onSave={saveGuest} onClose={() => setModal(null)} />}
+      {isAdmin && modal?.type==='edit'   && <GuestModal groups={groups} initial={modal.guest} onSave={saveGuest} onClose={() => setModal(null)} />}
+      {isAdmin && modal?.type==='delete' && <DeleteModal guest={modal.guest} onConfirm={() => deleteGuest(modal.guest.id)} onClose={() => setModal(null)} />}
+      {isAdmin && modal?.type==='groups' && <GroupsModal groups={groups} guests={guests} onClose={() => setModal(null)} />}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

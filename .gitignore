@@ -1,0 +1,15 @@
+# Configurações locais do Claude Code — não commitar
+.claude/
+
+# Arquivos de ambiente e segredos
+.env
+.env.*
+*.env
+
+# Sistema operacional
+Thumbs.db
+.DS_Store
+
+# Temporários
+*.tmp
+*.log
