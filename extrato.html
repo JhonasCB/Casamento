@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
@@ -194,7 +193,6 @@ const FIREBASE_CONFIG = {
   appId:             "1:35657642946:web:31f25ba40efaffbe9f1c5b"
 };
 firebase.initializeApp(FIREBASE_CONFIG);
-const ADMIN_UID   = '0XrGEivRvCbZVEfO2tQmGD712dl1';
 const EXTRATO_REF = firebase.database().ref('extrato');
 
 // ── Constantes ─────────────────────────────────────────────────
@@ -266,59 +264,6 @@ const dateToInput = dt => {
 
 const catMeta = id => CATEGORIAS.find(c => c.id === id) || { label: id, icon: '📦' };
 
-// ── LoginGate ─────────────────────────────────────────────────
-function LoginGate() {
-  const [email, setEmail] = useState('');
-  const [pw, setPw]       = useState('');
-  const [err, setErr]     = useState('');
-  const [busy, setBusy]   = useState(false);
-
-  const loginAdmin = () => {
-    setBusy(true); setErr('');
-    firebase.auth().signInWithEmailAndPassword(email, pw)
-      .catch(() => { setErr('E-mail ou senha incorretos.'); setBusy(false); });
-  };
-
-  return (
-    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'var(--bg)',padding:'24px',gap:28}}>
-      <div style={{textAlign:'center'}}>
-        <div style={{fontSize:13,letterSpacing:8,color:'var(--accent)',opacity:.8,marginBottom:12}}>✦ ✦ ✦</div>
-        <div style={{fontSize:'clamp(40px,10vw,64px)',fontWeight:200,letterSpacing:'clamp(8px,2vw,16px)',color:'var(--text-header)',fontStyle:'italic'}}>J &amp; J</div>
-        <div style={{display:'flex',alignItems:'center',gap:16,justifyContent:'center',margin:'10px 0'}}>
-          <div style={{flex:1,maxWidth:80,height:1,background:'linear-gradient(90deg,transparent,rgba(201,168,76,.6))'}} />
-          <span style={{color:'var(--accent)',fontSize:10}}>◆</span>
-          <div style={{flex:1,maxWidth:80,height:1,background:'linear-gradient(90deg,rgba(201,168,76,.6),transparent)'}} />
-        </div>
-        <div style={{fontSize:11,letterSpacing:3,color:'var(--text-muted)',textTransform:'uppercase'}}>20 de Novembro de 2027</div>
-      </div>
-      <div style={{background:'var(--bg-card)',border:'1px solid var(--border-modal)',borderRadius:16,padding:'28px 24px',width:'100%',maxWidth:320,boxShadow:'var(--modal-shadow)'}}>
-        <div style={{marginBottom:10}}>
-          <label style={{display:'block',fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1.5,color:'var(--text-label)',marginBottom:5}}>E-mail</label>
-          <input className="jj-form-input" type="email" autoFocus value={email} onChange={e => setEmail(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && loginAdmin()} />
-        </div>
-        <div style={{marginBottom:16}}>
-          <label style={{display:'block',fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1.5,color:'var(--text-label)',marginBottom:5}}>Senha</label>
-          <input className="jj-form-input" type="password" value={pw}
-            onChange={e => setPw(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && loginAdmin()} />
-        </div>
-        {err && <p style={{color:'#EF4444',fontSize:12,margin:'0 0 12px'}}>{err}</p>}
-        <button style={{width:'100%',padding:'12px',background:'var(--accent)',color:'var(--accent-text)',border:'none',borderRadius:8,cursor:'pointer',fontSize:14,fontWeight:700,marginBottom:12,fontFamily:'inherit'}}
-          onClick={loginAdmin} disabled={busy}>
-          {busy ? 'Entrando...' : 'Entrar'}
-        </button>
-        <div style={{textAlign:'center'}}>
-          <button style={{background:'none',border:'none',cursor:'pointer',fontSize:12,color:'var(--text-muted)',fontFamily:'inherit',padding:0}}
-            onClick={() => firebase.auth().signInAnonymously()}>
-            Continuar como convidado →
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── App ────────────────────────────────────────────────────────
 function App() {
   const [theme,    setTheme]    = useState(() => localStorage.getItem('jj-theme') || 'dark');
@@ -331,8 +276,6 @@ function App() {
   const [filterCat,  setFilterCat]  = useState('all');
   const [search,     setSearch]     = useState('');
   const [copied,     setCopied]     = useState(false);
-  const [currentUser, setCurrentUser] = useState(undefined);
-  const [isAdmin,     setIsAdmin]     = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -340,23 +283,13 @@ function App() {
   }, [theme]);
 
   useEffect(() => {
-    let attached = false;
-    const unsubAuth = firebase.auth().onAuthStateChanged(user => {
-      setCurrentUser(user);
-      if (!user) return;
-      const admin = user.uid === ADMIN_UID;
-      setIsAdmin(admin);
-      if (!admin || attached) return;
-      attached = true;
-      EXTRATO_REF.on('value', snap => {
-        const data = snap.val();
-        setExtrato(data ? Object.values(data).filter(e => e && e.id) : []);
-        setLoaded(true);
-      });
-      firebase.database().ref('.info/connected').on('value', snap => setOnline(!!snap.val()));
+    EXTRATO_REF.on('value', snap => {
+      const data = snap.val();
+      setExtrato(data ? Object.values(data).filter(e => e && e.id) : []);
+      setLoaded(true);
     });
+    firebase.database().ref('.info/connected').on('value', snap => setOnline(!!snap.val()));
     return () => {
-      unsubAuth();
       EXTRATO_REF.off();
       firebase.database().ref('.info/connected').off();
     };
@@ -458,29 +391,6 @@ function App() {
     });
   };
 
-  if (currentUser === undefined) return (
-    <div className="loading-screen">
-      <div className="loading-logo">J &amp; J</div>
-      <div className="loading-spinner" />
-    </div>
-  );
-
-  if (currentUser === null) return <LoginGate />;
-
-  if (!isAdmin) return (
-    <div className="loading-screen" style={{gap:20}}>
-      <div className="loading-logo">J &amp; J</div>
-      <div style={{fontSize:32}}>🔒</div>
-      <div style={{fontSize:15,fontWeight:600,color:'var(--text)'}}>Acesso restrito</div>
-      <div style={{fontSize:13,color:'var(--text-muted)',textAlign:'center',maxWidth:280}}>
-        Esta página é exclusiva para administradores.
-      </div>
-      <button className="btn-save" style={{marginTop:8}} onClick={() => firebase.auth().signOut()}>
-        🔑 Entrar como admin
-      </button>
-    </div>
-  );
-
   if (!loaded) return (
     <div className="loading-screen">
       <div className="loading-logo">J &amp; J</div>
@@ -515,10 +425,6 @@ function App() {
         <a href="./gastos.html"       className="jj-nav-link">💰 Gastos</a>
         <a href="./extrato.html"      className="jj-nav-link active">💳 Extrato</a>
         <a href="./roteiro.html" className="jj-nav-link">📋 Roteiro</a>
-        <button className="jj-nav-link" style={{marginLeft:'auto',border:'none',background:'none',cursor:'pointer'}}
-          onClick={() => firebase.auth().signOut()}>
-          🔓 Sair
-        </button>
       </nav>
 
       <div className="container-fluid px-3 px-md-4"
